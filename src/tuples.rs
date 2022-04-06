@@ -1,15 +1,13 @@
 use std::ops;
 
+use crate::utils::f32_eq;
+
 #[derive(Clone, Copy, PartialEq)]
 struct Tuple {
     x: f32,
     y: f32,
     z: f32,
     w: f32,
-}
-
-fn f32_eq(x: f32, y: f32) -> bool {
-    (x - y).abs() < 0.00001
 }
 
 impl ops::Add for Tuple {
@@ -220,7 +218,7 @@ mod test {
     #[test]
     #[should_panic]
     fn adding_points() {
-        // vector + point
+        // point + point
         let mut t_1 = Tuple::point(1.0, 2.0, 3.0);
         let t_2 = Tuple::point(4.0, 5.0, 6.0);
         t_1 += t_2;
