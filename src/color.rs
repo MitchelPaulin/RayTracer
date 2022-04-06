@@ -1,7 +1,7 @@
-use std::ops;
+use std::{fmt, ops};
 
 #[derive(Clone, Copy, PartialEq)]
-struct Color {
+pub struct Color {
     r: f32,
     g: f32,
     b: f32,
@@ -104,20 +104,53 @@ impl ops::MulAssign<Color> for Color {
     }
 }
 
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{} {} {}",
+            Color::clamp(self.r),
+            Color::clamp(self.g),
+            Color::clamp(self.b)
+        )
+    }
+}
+
 impl Color {
-    fn color(r: f32, g: f32, b: f32) -> Color {
+    pub fn color(r: f32, g: f32, b: f32) -> Color {
+        Color { r, g, b }
+    }
+
+    pub fn white() -> Color {
         Color {
-            r,
-            g,
-            b
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+        }
+    }
+
+    fn clamp(val: f32) -> u8 {
+        if val < 0.0 {
+            0
+        } else {
+            // max u8 is 255 so no truncation needed
+            (val * 255.0) as u8
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::utils::f32_eq;
     use super::*;
+    use crate::utils::f32_eq;
+
+    #[test]
+    fn clamp_test() {
+        assert_eq!(Color::clamp(-1.0), 0);
+        assert_eq!(Color::clamp(1.0), 255);
+        assert_eq!(Color::clamp(100.0), 255);
+        assert_eq!(Color::clamp(0.5), 127);
+    }
 
     #[test]
     fn color_create() {
@@ -165,7 +198,7 @@ mod test {
     fn scale_colors() {
         let mut c = Color::color(0.2, 0.3, 0.4);
         let res = Color::color(0.4, 0.6, 0.8);
-        
+
         let mul = c * 2.0;
         assert!(f32_eq(res.r, mul.r));
         assert!(f32_eq(res.g, mul.g));
@@ -181,7 +214,6 @@ mod test {
         assert!(f32_eq(res.r, c.r));
         assert!(f32_eq(res.g, c.g));
         assert!(f32_eq(res.b, c.b));
-
     }
 
     #[test]
@@ -194,12 +226,10 @@ mod test {
         assert!(f32_eq(res.r, mul.r));
         assert!(f32_eq(res.g, mul.g));
         assert!(f32_eq(res.b, mul.b));
-        
+
         c1 *= c2;
         assert!(f32_eq(res.r, c1.r));
         assert!(f32_eq(res.g, c1.g));
         assert!(f32_eq(res.b, c1.b));
-
     }
-
 }
