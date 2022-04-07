@@ -21,7 +21,7 @@ impl PartialEq for Matrix {
                 }
             }
         }
-        return true;
+        true
     }
 }
 
@@ -52,19 +52,19 @@ impl ops::Mul<Tuple> for Matrix {
     fn mul(self, rhs: Tuple) -> Tuple {
         assert_eq!(self.width, 4);
         let mut res = [0.0; 4];
-        for row in 0..self.height {
-            res[row] += self.matrix[row][0] * rhs.x;
-            res[row] += self.matrix[row][1] * rhs.y;
-            res[row] += self.matrix[row][2] * rhs.z;
-            res[row] += self.matrix[row][3] * rhs.w;
+        for (row, r) in res.iter_mut().enumerate().take(self.height) {
+            *r += self.matrix[row][0] * rhs.x
+                + self.matrix[row][1] * rhs.y
+                + self.matrix[row][2] * rhs.z
+                + self.matrix[row][3] * rhs.w;
         }
 
-        Tuple::tuple(res[0], res[1], res[2], res[3])
+        Tuple::new(res[0], res[1], res[2], res[3])
     }
 }
 
 impl Matrix {
-    pub fn matrix(width: usize, height: usize) -> Matrix {
+    pub fn new(width: usize, height: usize) -> Matrix {
         Matrix {
             width,
             height,
@@ -81,7 +81,7 @@ impl Matrix {
     }
 
     pub fn identity(size: usize) -> Matrix {
-        let mut m = Matrix::matrix(size, size);
+        let mut m = Matrix::new(size, size);
         for i in 0..size {
             m.matrix[i][i] = 1.0;
         }
@@ -107,9 +107,9 @@ mod test {
 
     #[test]
     fn equality() {
-        let m1 = Matrix::matrix(3, 4);
-        let m2 = Matrix::matrix(3, 4);
-        let m3 = Matrix::matrix(3, 2);
+        let m1 = Matrix::new(3, 4);
+        let m2 = Matrix::new(3, 4);
+        let m3 = Matrix::new(3, 2);
 
         assert!(m1 == m2);
         assert!(m1 == m1);
@@ -118,7 +118,7 @@ mod test {
 
     #[test]
     fn multiply_matrix() {
-        let mut A = Matrix::matrix(4, 4);
+        let mut A = Matrix::new(4, 4);
         A.matrix = vec![
             vec![1.0, 2.0, 3.0, 4.0],
             vec![5.0, 6.0, 7.0, 8.0],
@@ -126,7 +126,7 @@ mod test {
             vec![5.0, 4.0, 3.0, 2.0],
         ];
 
-        let mut B = Matrix::matrix(4, 4);
+        let mut B = Matrix::new(4, 4);
         B.matrix = vec![
             vec![-2.0, 1.0, 2.0, 3.0],
             vec![3.0, 2.0, 1.0, -1.0],
@@ -134,7 +134,7 @@ mod test {
             vec![1.0, 2.0, 7.0, 8.0],
         ];
 
-        let mut res = Matrix::matrix(4, 4);
+        let mut res = Matrix::new(4, 4);
         res.matrix = vec![
             vec![20.0, 22.0, 50.0, 48.0],
             vec![44.0, 54.0, 114.0, 108.0],
@@ -148,7 +148,7 @@ mod test {
 
     #[test]
     fn multiply_tuple() {
-        let mut A = Matrix::matrix(4, 4);
+        let mut A = Matrix::new(4, 4);
         A.matrix = vec![
             vec![1.0, 2.0, 3.0, 4.0],
             vec![2.0, 4.0, 4.0, 2.0],
@@ -166,7 +166,7 @@ mod test {
     #[test]
     fn identity() {
         let I = Matrix::identity(4);
-        let mut A = Matrix::matrix(4, 4);
+        let mut A = Matrix::new(4, 4);
         A.matrix = vec![
             vec![1.0, 2.0, 3.0, 4.0],
             vec![2.0, 4.0, 4.0, 2.0],
@@ -180,7 +180,7 @@ mod test {
 
     #[test]
     fn transpose() {
-        let mut A = Matrix::matrix(4, 4);
+        let mut A = Matrix::new(4, 4);
         A.matrix = vec![
             vec![0.0, 9.0, 3.0, 0.0],
             vec![9.0, 8.0, 0.0, 8.0],
@@ -188,7 +188,7 @@ mod test {
             vec![0.0, 0.0, 5.0, 8.0],
         ];
 
-        let mut res = Matrix::matrix(4, 4);
+        let mut res = Matrix::new(4, 4);
         res.matrix = vec![
             vec![0.0, 9.0, 1.0, 0.0],
             vec![9.0, 8.0, 8.0, 0.0],

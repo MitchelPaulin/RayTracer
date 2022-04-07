@@ -125,7 +125,7 @@ impl PartialEq for Color {
 }
 
 impl Color {
-    pub fn color(r: f32, g: f32, b: f32) -> Color {
+    pub fn new(r: f32, g: f32, b: f32) -> Color {
         Color { r, g, b }
     }
 
@@ -161,7 +161,7 @@ mod test {
 
     #[test]
     fn color_create() {
-        let c = Color::color(0.1, 0.2, 0.3);
+        let c = Color::new(0.1, 0.2, 0.3);
         assert_eq!(c.r, 0.1);
         assert_eq!(c.g, 0.2);
         assert_eq!(c.b, 0.3);
@@ -169,9 +169,9 @@ mod test {
 
     #[test]
     fn adding_colors() {
-        let mut c1 = Color::color(0.9, 0.6, 0.75);
-        let c2 = Color::color(0.7, 0.1, 0.25);
-        let res = Color::color(1.6, 0.7, 1.0);
+        let mut c1 = Color::new(0.9, 0.6, 0.75);
+        let c2 = Color::new(0.7, 0.1, 0.25);
+        let res = Color::new(1.6, 0.7, 1.0);
 
         let add = c1 + c2;
         assert!(add == res);
@@ -182,9 +182,9 @@ mod test {
 
     #[test]
     fn subtracting_colors() {
-        let mut c1 = Color::color(0.9, 0.6, 0.75);
-        let c2 = Color::color(0.7, 0.1, 0.25);
-        let res = Color::color(0.2, 0.5, 0.5);
+        let mut c1 = Color::new(0.9, 0.6, 0.75);
+        let c2 = Color::new(0.7, 0.1, 0.25);
+        let res = Color::new(0.2, 0.5, 0.5);
 
         let sub = c1 - c2;
         assert!(res == sub);
@@ -195,8 +195,8 @@ mod test {
 
     #[test]
     fn scale_colors() {
-        let mut c = Color::color(0.2, 0.3, 0.4);
-        let res = Color::color(0.4, 0.6, 0.8);
+        let mut c = Color::new(0.2, 0.3, 0.4);
+        let res = Color::new(0.4, 0.6, 0.8);
 
         let mul = c * 2.0;
         assert!(res == mul);
@@ -211,9 +211,9 @@ mod test {
 
     #[test]
     fn mul_colors() {
-        let mut c1 = Color::color(1.0, 0.2, 0.4);
-        let c2 = Color::color(0.9, 1.0, 0.1);
-        let res = Color::color(0.9, 0.2, 0.04);
+        let mut c1 = Color::new(1.0, 0.2, 0.4);
+        let c2 = Color::new(0.9, 1.0, 0.1);
+        let res = Color::new(0.9, 0.2, 0.04);
 
         let mul = c1 * c2;
         assert!(res == mul);

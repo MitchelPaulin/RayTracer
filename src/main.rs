@@ -13,10 +13,10 @@ mod utils;
 mod matrix;
 
 fn main() {
-    let mut c = Canvas::canvas(20, 10);
+    let mut c = Canvas::new(20, 10);
 
-    let red = Color::color(1.0, 0.0, 0.0);
-    let green = Color::color(0.0, 1.0, 0.0);
+    let red = Color::new(1.0, 0.0, 0.0);
+    let green = Color::new(0.0, 1.0, 0.0);
 
     for i in 0..c.height {
         for j in 0..c.width / 2 {

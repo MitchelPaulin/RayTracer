@@ -10,7 +10,7 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    pub fn canvas(width: usize, height: usize) -> Canvas {
+    pub fn new(width: usize, height: usize) -> Canvas {
         Canvas {
             width,
             height,
@@ -38,7 +38,7 @@ impl Canvas {
             for j in 0..self.width {
                 write!(&mut file, "{} ", self.get_pixel(i, j)).unwrap();
             }
-            writeln!(&mut file, "").unwrap();
+            writeln!(&mut file).unwrap();
         }
     }
 }

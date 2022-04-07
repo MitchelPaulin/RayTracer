@@ -118,8 +118,7 @@ impl PartialEq for Tuple {
 }
 
 impl Tuple {
-
-    pub fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
         Tuple { x, y, z, w }
     }
 
@@ -309,7 +308,7 @@ mod test {
 
         v = Tuple::vector(-1.0, -2.0, -3.0);
         let mag = v.magnitude();
-        let expected = (14.0 as f32).sqrt();
+        let expected = 14.0_f32.sqrt();
         assert!(f32_eq(mag, expected))
     }
 
