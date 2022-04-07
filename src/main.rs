@@ -5,6 +5,7 @@ mod canvas;
 mod color;
 mod tuples;
 mod utils;
+mod matrix;
 
 fn main() {
     let mut c = Canvas::canvas(20, 10);

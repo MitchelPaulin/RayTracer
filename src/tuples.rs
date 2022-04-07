@@ -3,11 +3,11 @@ use std::ops;
 use crate::utils::f32_eq;
 
 #[derive(Clone, Copy)]
-struct Tuple {
-    x: f32,
-    y: f32,
-    z: f32,
-    w: f32,
+pub struct Tuple {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub w: f32,
 }
 
 impl ops::Add for Tuple {
@@ -118,6 +118,11 @@ impl PartialEq for Tuple {
 }
 
 impl Tuple {
+
+    pub fn tuple(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+        Tuple { x, y, z, w }
+    }
+
     pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
         Tuple { x, y, z, w: 0.0 }
     }
