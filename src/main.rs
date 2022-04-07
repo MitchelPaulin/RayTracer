@@ -1,3 +1,8 @@
+#![allow(
+    dead_code,
+    non_snake_case
+  )]
+
 use canvas::Canvas;
 use color::Color;
 
