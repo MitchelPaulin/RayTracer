@@ -2,7 +2,7 @@ use std::ops;
 
 use crate::utils::f32_eq;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy)]
 struct Tuple {
     x: f32,
     y: f32,
@@ -108,6 +108,15 @@ impl ops::Neg for Tuple {
     }
 }
 
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        f32_eq(self.x, other.x)
+            && f32_eq(self.y, other.y)
+            && f32_eq(self.z, other.z)
+            && f32_eq(self.w, other.w)
+    }
+}
+
 impl Tuple {
     pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
         Tuple { x, y, z, w: 0.0 }
@@ -123,13 +132,6 @@ impl Tuple {
 
     pub fn is_point(&self) -> bool {
         f32_eq(self.w, 1.0)
-    }
-
-    pub fn equal(&self, second: &Tuple) -> bool {
-        f32_eq(self.x, second.x)
-            && f32_eq(self.y, second.y)
-            && f32_eq(self.z, second.z)
-            && f32_eq(self.w, second.w)
     }
 
     pub fn magnitude(&self) -> f32 {
@@ -188,10 +190,10 @@ mod test {
     #[test]
     fn tuple_equal() {
         let v = Tuple::vector(1.0, 2.0, 3.0);
-        assert!(v.equal(&v));
+        assert!(v == v);
 
         let v_2 = Tuple::vector(1.0, 2.0, 1.0);
-        assert!(!v.equal(&v_2));
+        assert!(v != v_2);
     }
 
     #[test]
@@ -202,8 +204,8 @@ mod test {
         let mut res = Tuple::vector(5.0, 7.0, 9.0);
         let mut add = t_1 + t_2;
         t_1 += t_2;
-        assert!(t_1.equal(&res));
-        assert!(add.equal(&res));
+        assert!(t_1 == res);
+        assert!(add == res);
 
         // vector + point
         t_1 = Tuple::vector(1.0, 2.0, 3.0);
@@ -211,8 +213,8 @@ mod test {
         res = Tuple::point(5.0, 7.0, 9.0);
         add = t_1 + t_2;
         t_1 += t_2;
-        assert!(t_1.equal(&res));
-        assert!(add.equal(&res));
+        assert!(t_1 == res);
+        assert!(add == res);
     }
 
     #[test]
@@ -232,8 +234,8 @@ mod test {
         let mut res = Tuple::point(-3.0, -3.0, 5.0);
         let mut sub = t_1 - t_2;
         t_1 -= t_2;
-        assert!(t_1.equal(&res));
-        assert!(sub.equal(&res));
+        assert!(t_1 == res);
+        assert!(sub == res);
 
         // vector - vector
         t_1 = Tuple::vector(1.0, 2.0, 3.0);
@@ -241,8 +243,8 @@ mod test {
         res = Tuple::vector(0.0, -1.0, 3.0);
         sub = t_1 - t_2;
         t_1 -= t_2;
-        assert!(t_1.equal(&res));
-        assert!(sub.equal(&res));
+        assert!(t_1 == res);
+        assert!(sub == res);
 
         // point - point
         t_1 = Tuple::point(1.0, 2.0, 3.0);
@@ -250,8 +252,8 @@ mod test {
         res = Tuple::vector(0.0, -1.0, 3.0);
         sub = t_1 - t_2;
         t_1 -= t_2;
-        assert!(t_1.equal(&res));
-        assert!(sub.equal(&res));
+        assert!(t_1 == res);
+        assert!(sub == res);
     }
 
     #[test]
@@ -268,7 +270,7 @@ mod test {
         let v = Tuple::vector(-1.0, 2.0, 0.0);
         let res = Tuple::vector(1.0, -2.0, 0.0);
         let neg = -v;
-        assert!(neg.equal(&res));
+        assert!(neg == res);
     }
 
     #[test]
@@ -281,18 +283,18 @@ mod test {
     #[test]
     fn scale_test() {
         let mut v = Tuple::vector(-1.0, 2.0, 0.0);
-        assert!((v * 1.0).equal(&v));
+        assert!(v * 1.0 == v);
         v *= 1.0;
-        assert!(v.equal(&v));
+        assert!(v == v);
 
         let res = Tuple::vector(-2.0, 4.0, 0.0);
-        assert!((v * 2.0).equal(&res));
+        assert!(v * 2.0 == res);
         v *= 2.0;
-        assert!(v.equal(&res));
+        assert!(v == res);
 
-        assert!((v / 2.0).equal(&(v / 2.0)));
+        assert!((v / 2.0) == (v / 2.0));
         v /= 2.0;
-        assert!(v.equal(&v));
+        assert!(v == v);
     }
 
     #[test]
@@ -311,12 +313,12 @@ mod test {
         let a = Tuple::vector(4.0, 0.0, 0.0);
         let norm = a.normalize();
         let res = Tuple::vector(1.0, 0.0, 0.0);
-        assert!(norm.equal(&res));
+        assert!(norm == res);
 
         let a = Tuple::vector(1.0, 2.0, 3.0);
         let norm = a.normalize();
         let res = Tuple::vector(0.26726, 0.53452, 0.80178);
-        assert!(norm.equal(&res));
+        assert!(norm == res);
     }
 
     #[test]
@@ -332,10 +334,10 @@ mod test {
         let b = Tuple::vector(2.0, 3.0, 4.0);
         let mut c = Tuple::cross(&a, &b);
         let mut res = Tuple::vector(-1.0, 2.0, -1.0);
-        assert!(c.equal(&res));
+        assert!(c == res);
 
         c = Tuple::cross(&b, &a);
         res = Tuple::vector(1.0, -2.0, 1.0);
-        assert!(c.equal(&res));
+        assert!(c == res);
     }
 }

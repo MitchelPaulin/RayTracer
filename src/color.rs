@@ -1,6 +1,8 @@
 use std::{fmt, ops};
 
-#[derive(Clone, Copy, PartialEq)]
+use crate::utils::f32_eq;
+
+#[derive(Clone, Copy)]
 pub struct Color {
     r: f32,
     g: f32,
@@ -116,6 +118,12 @@ impl fmt::Display for Color {
     }
 }
 
+impl PartialEq for Color {
+    fn eq(&self, other: &Self) -> bool {
+        f32_eq(self.r, other.r) && f32_eq(self.g, other.g) && f32_eq(self.b, other.b)
+    }
+}
+
 impl Color {
     pub fn color(r: f32, g: f32, b: f32) -> Color {
         Color { r, g, b }
@@ -142,7 +150,6 @@ impl Color {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::f32_eq;
 
     #[test]
     fn clamp_test() {
@@ -167,14 +174,10 @@ mod test {
         let res = Color::color(1.6, 0.7, 1.0);
 
         let add = c1 + c2;
-        assert!(f32_eq(res.r, add.r));
-        assert!(f32_eq(res.g, add.g));
-        assert!(f32_eq(res.b, add.b));
+        assert!(add == res);
 
         c1 += c2;
-        assert!(f32_eq(res.r, c1.r));
-        assert!(f32_eq(res.g, c1.g));
-        assert!(f32_eq(res.b, c1.b));
+        assert!(res == c1);
     }
 
     #[test]
@@ -184,14 +187,10 @@ mod test {
         let res = Color::color(0.2, 0.5, 0.5);
 
         let sub = c1 - c2;
-        assert!(f32_eq(res.r, sub.r));
-        assert!(f32_eq(res.g, sub.g));
-        assert!(f32_eq(res.b, sub.b));
+        assert!(res == sub);
 
         c1 -= c2;
-        assert!(f32_eq(res.r, c1.r));
-        assert!(f32_eq(res.g, c1.g));
-        assert!(f32_eq(res.b, c1.b));
+        assert!(res == c1);
     }
 
     #[test]
@@ -200,20 +199,14 @@ mod test {
         let res = Color::color(0.4, 0.6, 0.8);
 
         let mul = c * 2.0;
-        assert!(f32_eq(res.r, mul.r));
-        assert!(f32_eq(res.g, mul.g));
-        assert!(f32_eq(res.b, mul.b));
+        assert!(res == mul);
 
         c *= 2.0;
-        assert!(f32_eq(res.r, c.r));
-        assert!(f32_eq(res.g, c.g));
-        assert!(f32_eq(res.b, c.b));
+        assert!(res == c);
 
         c /= 2.0;
         c = c / 0.5;
-        assert!(f32_eq(res.r, c.r));
-        assert!(f32_eq(res.g, c.g));
-        assert!(f32_eq(res.b, c.b));
+        assert!(res == c);
     }
 
     #[test]
@@ -223,13 +216,9 @@ mod test {
         let res = Color::color(0.9, 0.2, 0.04);
 
         let mul = c1 * c2;
-        assert!(f32_eq(res.r, mul.r));
-        assert!(f32_eq(res.g, mul.g));
-        assert!(f32_eq(res.b, mul.b));
+        assert!(res == mul);
 
         c1 *= c2;
-        assert!(f32_eq(res.r, c1.r));
-        assert!(f32_eq(res.g, c1.g));
-        assert!(f32_eq(res.b, c1.b));
+        assert!(res == c1);
     }
 }
