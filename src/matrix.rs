@@ -1,8 +1,8 @@
 use std::ops;
 
-use crate::tuples::Tuple;
+use crate::{tuples::Tuple, utils::f32_eq};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Matrix {
     pub width: usize,
     pub height: usize,
@@ -16,7 +16,7 @@ impl PartialEq for Matrix {
         }
         for i in 0..self.height {
             for j in 0..self.width {
-                if self.matrix[i][j] != other.matrix[i][j] {
+                if !f32_eq(self.matrix[i][j], other.matrix[i][j]) {
                     return false;
                 }
             }
@@ -99,10 +99,67 @@ impl Matrix {
             }
         }
     }
+
+    pub fn determinant(&self) -> f32 {
+        assert_eq!(self.width, self.height);
+        if self.width == 2 {
+            return self.matrix[0][0] * self.matrix[1][1] - self.matrix[0][1] * self.matrix[1][0];
+        }
+        let mut det = 0.0;
+
+        for col in 0..self.width {
+            det += self.matrix[0][col] * self.cofactor(0, col);
+        }
+
+        det
+    }
+
+    pub fn sub_matrix(&self, row: usize, col: usize) -> Matrix {
+        let mut ret = self.clone();
+        ret.matrix.remove(row);
+        for i in 0..self.height - 1 {
+            ret.matrix[i].remove(col);
+        }
+        ret.height -= 1;
+        ret.width -= 1;
+        ret
+    }
+
+    pub fn minor(&self, i: usize, j: usize) -> f32 {
+        let m = self.sub_matrix(i, j);
+        m.determinant()
+    }
+
+    pub fn cofactor(&self, i: usize, j: usize) -> f32 {
+        let m = self.minor(i, j);
+        if (i + j) & 1 == 0 {
+            m
+        } else {
+            -m
+        }
+    }
+
+    pub fn inverse(&self) -> Matrix {
+        let mut inverse = self.clone();
+
+        let det = self.determinant();
+        assert_ne!(det, 0.0); // is matrix invertible
+
+        for row in 0..self.width {
+            for col in 0..self.height {
+                let c = self.cofactor(row, col);
+                inverse.matrix[col][row] = c / det;
+            }
+        }
+
+        inverse
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use std::vec;
+
     use super::*;
 
     #[test]
@@ -198,5 +255,165 @@ mod test {
 
         A.transpose();
         assert!(A == res);
+    }
+
+    #[test]
+    fn determinant_2x2() {
+        let mut m = Matrix::new(2, 2);
+        m.matrix = vec![vec![1.0, 5.0], vec![-3.0, 2.0]];
+        assert_eq!(m.determinant(), 17.0);
+    }
+
+    #[test]
+    fn determinant_3x3() {
+        let mut A = Matrix::new(3, 3);
+        A.matrix = vec![
+            vec![1.0, 2.0, 6.0],
+            vec![-5.0, 8.0, -4.0],
+            vec![2.0, 6.0, 4.0],
+        ];
+
+        assert_eq!(A.determinant(), -196.0);
+    }
+
+    #[test]
+    fn determinant_4x4() {
+        let mut A = Matrix::new(4, 4);
+        A.matrix = vec![
+            vec![-2.0, -8.0, 3.0, 5.0],
+            vec![-3.0, 1.0, 7.0, 3.0],
+            vec![1.0, 2.0, -9.0, 6.0],
+            vec![-6.0, 7.0, 7.0, -9.0],
+        ];
+
+        assert_eq!(A.determinant(), -4071.0);
+    }
+
+    #[test]
+    fn submatrix_3x3() {
+        let mut A = Matrix::new(3, 3);
+        A.matrix = vec![
+            vec![1.0, 5.0, 0.0],
+            vec![-3.0, 2.0, 7.0],
+            vec![0.0, 6.0, -3.0],
+        ];
+
+        let mut res = Matrix::new(2, 2);
+        res.matrix = vec![vec![-3.0, 2.0], vec![0.0, 6.0]];
+
+        let sA = A.sub_matrix(0, 2);
+        assert!(sA == res);
+    }
+
+    #[test]
+    fn submatrix_4x4() {
+        let mut A = Matrix::new(4, 4);
+        A.matrix = vec![
+            vec![-6.0, 1.0, 1.0, 6.0],
+            vec![-8.0, 5.0, 8.0, 6.0],
+            vec![-1.0, 0.0, 8.0, 2.0],
+            vec![-7.0, 1.0, -1.0, 1.0],
+        ];
+
+        let mut res = Matrix::new(3, 3);
+        res.matrix = vec![
+            vec![-6.0, 1.0, 6.0],
+            vec![-8.0, 8.0, 6.0],
+            vec![-7.0, -1.0, 1.0],
+        ];
+
+        let sA = A.sub_matrix(2, 1);
+        assert!(sA == res);
+    }
+
+    #[test]
+    fn minors_3x3() {
+        let mut A = Matrix::new(3, 3);
+        A.matrix = vec![
+            vec![3.0, 5.0, 0.0],
+            vec![2.0, -1.0, -7.0],
+            vec![6.0, -1.0, 5.0],
+        ];
+        assert_eq!(A.minor(1, 0), 25.0);
+    }
+
+    #[test]
+    fn cofactor_3x3() {
+        let mut A = Matrix::new(3, 3);
+        A.matrix = vec![
+            vec![3.0, 5.0, 0.0],
+            vec![2.0, -1.0, -7.0],
+            vec![6.0, -1.0, 5.0],
+        ];
+        assert_eq!(A.minor(0, 0), A.cofactor(0, 0));
+        assert_eq!(A.minor(1, 0), -A.cofactor(1, 0));
+    }
+
+    #[test]
+    fn inverse_4x4() {
+        let mut A = Matrix::new(4, 4);
+        A.matrix = vec![
+            vec![8.0, -5.0, 9.0, 2.0],
+            vec![7.0, 5.0, 6.0, 1.0],
+            vec![-6.0, 0.0, 9.0, 6.0],
+            vec![-3.0, 0.0, -9.0, -4.0],
+        ];
+
+        let mut inverse = Matrix::new(4, 4);
+        inverse.matrix = vec![
+            vec![-0.15385, -0.15385, -0.28205, -0.53846],
+            vec![-0.07692, 0.12308, 0.02564, 0.03077],
+            vec![0.35897, 0.35897, 0.43590, 0.92308],
+            vec![-0.69231, -0.69231, -0.76923, -1.92308],
+        ];
+
+        let Ai = A.inverse();
+
+        assert!(Ai == inverse);
+    }
+
+    #[test]
+    fn inverse_4x4_2() {
+        let mut A = Matrix::new(4, 4);
+        A.matrix = vec![
+            vec![9.0, 3.0, 0.0, 9.0],
+            vec![-5.0, -2.0, -6.0, -3.0],
+            vec![-4.0, 9.0, 6.0, 4.0],
+            vec![-7.0, 6.0, 6.0, 2.0],
+        ];
+
+        let mut inverse = Matrix::new(4, 4);
+        inverse.matrix = vec![
+            vec![-0.04074, -0.07778, 0.14444, -0.22222],
+            vec![-0.07778, 0.03333, 0.36667, -0.33333],
+            vec![-0.02901, -0.14630, -0.10926, 0.12963],
+            vec![0.17778, 0.06667, -0.26667, 0.33333],
+        ];
+
+        let Ai = A.inverse();
+
+        assert!(Ai == inverse);
+    }
+
+    #[test]
+    fn sanity_test() {
+        let mut A = Matrix::new(4, 4);
+        A.matrix = vec![
+            vec![3.0, -9.0, 7.0, 3.0],
+            vec![3.0, -8.0, 2.0, -9.0],
+            vec![-4.0, 4.0, 4.0, 1.0],
+            vec![-6.0, 5.0, -1.0, 1.0]
+        ];
+
+        let mut B = Matrix::new(4, 4);
+        B.matrix = vec![
+            vec![8.0, 2.0, 2.0, 2.0],
+            vec![3.0, -1.0, 7.0, 0.0],
+            vec![7.0, 0.0, 5.0, 4.0],
+            vec![6.0, -2.0, 0.0, 5.0]
+        ];
+
+        let C = A.clone() * B.clone();
+        assert!(C * B.inverse() == A);
     }
 }
