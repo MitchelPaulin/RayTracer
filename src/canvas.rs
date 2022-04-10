@@ -22,8 +22,8 @@ impl Canvas {
         self.canvas[x][y] = c;
     }
 
-    pub fn get_pixel(&self, i: usize, j: usize) -> Color {
-        self.canvas[i][j]
+    pub fn get_pixel(&self, x: usize, y: usize) -> Color {
+        self.canvas[x][y]
     }
 
     pub fn write_to_ppm(&self) {
