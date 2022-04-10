@@ -7,6 +7,7 @@ use math::{matrix::Matrix, tuples::Tuple};
 
 mod canvas;
 mod math;
+mod shapes;
 fn main() {
     let mut c = Canvas::new(100, 100);
 
