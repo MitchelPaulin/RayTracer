@@ -152,6 +152,23 @@ impl Matrix {
 
         inverse
     }
+
+    pub fn translation(x: f32, y: f32, z: f32) -> Matrix {
+        let mut m = Matrix::identity(4);
+        m.matrix[0][3] = x;
+        m.matrix[1][3] = y;
+        m.matrix[2][3] = z;
+        m
+    }
+
+    pub fn scaling(x: f32, y: f32, z: f32) -> Matrix {
+        let mut m = Matrix::new(4);
+        m.matrix[0][0] = x;
+        m.matrix[1][1] = y;
+        m.matrix[2][2] = z;
+        m.matrix[3][3] = 1.0;
+        m
+    }
 }
 
 #[cfg(test)]
@@ -411,5 +428,60 @@ mod test {
 
         let C = &A * &B;
         assert!(&C * &B.inverse() == A);
+    }
+
+    #[test]
+    fn translation_point() {
+        let transform = Matrix::translation(5.0, -3.0, 2.0);
+        let p = Tuple::point(-3.0, 4.0, 5.0);
+        let res = Tuple::point(2.0, 1.0, 7.0);
+        assert!(&transform * &p == res);
+    }
+
+    #[test]
+    fn translation_reverse() {
+        let transform = Matrix::translation(5.0, -3.0, 2.0);
+        let inverse = transform.inverse();
+        let p = &inverse * &Tuple::point(-3.0, 4.0, 5.0);
+        assert!(p == Tuple::point(-8.0, 7.0, 3.0));
+    }
+
+    #[test]
+    fn translation_does_not_effect_vectors() {
+        let transform = Matrix::translation(5.0, -3.0, 2.0);
+        let v = Tuple::vector(-3.0, 4.0, 5.0);
+        assert!(&transform * &v == v);
+    }
+
+    #[test]
+    fn scaling_point() {
+        let transform = Matrix::scaling(2.0, 3.0, 4.0);
+        let p = Tuple::point(-4.0, 6.0, 8.0);
+        let res = &transform * &p;
+        assert!(res == Tuple::point(-8.0, 18.0, 32.0));
+    }
+
+    #[test]
+    fn scaling_vector() {
+        let transform = Matrix::scaling(2.0, 3.0, 4.0);
+        let v = Tuple::vector(-4.0, 6.0, 8.0);
+        let res = &transform * &v;
+        assert!(res == Tuple::vector(-8.0, 18.0, 32.0));
+    }
+
+    #[test]
+    fn scaling_reverse() {
+        let transform = Matrix::scaling(2.0, 3.0, 4.0);
+        let inv = transform.inverse();
+        let v = Tuple::vector(-4.0, 6.0, 8.0);
+        let res = &inv * &v;
+        assert!(res == Tuple::vector(-2.0, 2.0, 2.0));
+    }
+
+    #[test]
+    fn reflection() {
+        let transform = Matrix::scaling(-1.0, 1.0, 1.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        assert!(&transform * &p == Tuple::point(-2.0, 3.0, 4.0));
     }
 }
