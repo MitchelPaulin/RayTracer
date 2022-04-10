@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::utils::f32_eq;
+use super::utils::f32_eq;
 
 #[derive(Clone, Copy)]
 pub struct Tuple {

@@ -1,6 +1,8 @@
-use std::{ops};
+use std::ops;
 
-use crate::{tuples::Tuple, utils::f32_eq};
+use crate::math::tuples::Tuple;
+
+use super::utils::f32_eq;
 
 /*
     A specialized matrix library for only square matrices

@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::color::Color;
+use super::color::Color;
 
 pub struct Canvas {
     pub width: usize,

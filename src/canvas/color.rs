@@ -1,6 +1,6 @@
 use std::{fmt, ops};
 
-use crate::utils::f32_eq;
+use crate::math::utils::f32_eq;
 
 #[derive(Clone, Copy)]
 pub struct Color {

@@ -1,22 +1,12 @@
-#![allow(
-    dead_code,
-    non_snake_case
-  )]
+#![allow(dead_code, non_snake_case)]
 
 use std::f32::consts::PI;
 
-use canvas::Canvas;
-use color::Color;
-use matrix::Matrix;
-use tuples::Tuple;
+use canvas::{canvas::Canvas, color::Color};
+use math::{matrix::Matrix, tuples::Tuple};
 
 mod canvas;
-mod color;
-mod tuples;
-mod utils;
-mod matrix;
-mod ray;
-
+mod math;
 fn main() {
     let mut c = Canvas::new(100, 100);
 

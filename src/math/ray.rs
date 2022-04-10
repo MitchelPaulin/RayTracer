@@ -1,4 +1,4 @@
-use crate::tuples::Tuple;
+use super::tuples::Tuple;
 
 pub struct Ray {
     origin: Tuple,
