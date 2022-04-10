@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use string_builder::Builder;
 
 use super::color::Color;
 
@@ -35,10 +36,11 @@ impl Canvas {
         writeln!(&mut file, "255").unwrap();
 
         for i in 0..self.height {
+            let mut builder = Builder::default();
             for j in 0..self.width {
-                write!(&mut file, "{} ", self.get_pixel(i, j)).unwrap();
+                builder.append(self.get_pixel(i, j).to_string() + " ");
             }
-            writeln!(&mut file).unwrap();
+            writeln!(&mut file, "{}", builder.string().unwrap()).unwrap();
         }
     }
 }
