@@ -2,7 +2,7 @@ use std::ops;
 
 use super::utils::f32_eq;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Tuple {
     pub x: f32,
     pub y: f32,

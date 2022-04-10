@@ -2,10 +2,10 @@
 
 use std::f32::consts::PI;
 
-use canvas::{canvas::Canvas, color::Color};
+use draw::{canvas::Canvas, color::Color};
 use math::{matrix::Matrix, tuples::Tuple};
 
-mod canvas;
+mod draw;
 mod math;
 mod shapes;
 fn main() {

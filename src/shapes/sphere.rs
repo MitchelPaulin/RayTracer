@@ -1,17 +1,23 @@
-use crate::math::{ray::Ray, tuples::Tuple};
+use crate::math::{matrix::Matrix, ray::Ray, tuples::Tuple};
 
 use super::intersect::{Intersect, Intersection};
 
 pub struct Sphere {
-    origin: Tuple,
-    radius: f32,
+    transform: Matrix,
 }
 
 impl Sphere {
-    pub fn new() -> Sphere {
-        Sphere {
-            origin: Tuple::point(0.0, 0.0, 0.0),
-            radius: 1.0,
+    pub fn new(transform: Option<Matrix>) -> Sphere {
+        match transform {
+            Some(matrix) => {
+                assert_eq!(matrix.size, 4);
+                Sphere {
+                    transform: matrix,
+                }
+            }
+            None => Sphere {
+                transform: Matrix::identity(4),
+            },
         }
     }
 }
@@ -21,11 +27,14 @@ impl Intersect for Sphere {
         Determine at what points the ray interests the sphere, if any
     */
     fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let sphere_to_ray = ray.origin - self.origin;
+        let inv = self.transform.inverse();
+        let transformed_ray = ray.apply_transform(&inv);
 
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * ray.direction.dot(&sphere_to_ray);
-        let c = sphere_to_ray.dot(&sphere_to_ray) - self.radius;
+        let sphere_to_ray = transformed_ray.origin - Tuple::point(0.0, 0.0, 0.0);
+
+        let a = transformed_ray.direction.dot(&transformed_ray.direction);
+        let b = 2.0 * sphere_to_ray.dot(&transformed_ray.direction);
+        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
 
         let discriminant = b * b - 4.0 * a * c;
         if discriminant < 0.0 {
@@ -36,11 +45,11 @@ impl Intersect for Sphere {
         vec![
             Intersection {
                 shape: self,
-                intersection: (-b - discriminant.sqrt()) / 2.0 * a,
+                t: (-b - discriminant.sqrt()) / (2.0 * a),
             },
             Intersection {
                 shape: self,
-                intersection: (-b + discriminant.sqrt()) / 2.0 * a,
+                t: (-b + discriminant.sqrt()) / (2.0 * a),
             },
         ]
     }
@@ -55,25 +64,25 @@ mod test {
     #[test]
     fn ray_intersect_sphere() {
         let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::new(None);
         let xs = s.intersect(&r);
-        assert_eq!(xs[0].intersection, 4.0);
-        assert_eq!(xs[1].intersection, 6.0)
+        assert_eq!(xs[0].t, 4.0);
+        assert_eq!(xs[1].t, 6.0)
     }
 
     #[test]
     fn ray_intersect_sphere_top() {
         let r = Ray::new(Tuple::point(0.0, 1.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::new(None);
         let xs = s.intersect(&r);
-        assert_eq!(xs[0].intersection, 5.0);
-        assert_eq!(xs[1].intersection, 5.0)
+        assert_eq!(xs[0].t, 5.0);
+        assert_eq!(xs[1].t, 5.0)
     }
 
     #[test]
     fn ray_intersect_sphere_miss() {
         let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::new(None);
         let xs = s.intersect(&r);
         assert!(xs.len() == 0);
     }
@@ -81,18 +90,27 @@ mod test {
     #[test]
     fn ray_intersect_sphere_cast_from_origin() {
         let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::new(None);
         let xs = s.intersect(&r);
-        assert_eq!(xs[0].intersection, -1.0);
-        assert_eq!(xs[1].intersection, 1.0);
+        assert_eq!(xs[0].t, -1.0);
+        assert_eq!(xs[1].t, 1.0);
     }
 
     #[test]
     fn ray_intersect_sphere_cas_from_behind_sphere() {
         let r = Ray::new(Tuple::point(0.0, 0.0, 5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::new(None);
         let xs = s.intersect(&r);
-        assert_eq!(xs[0].intersection, -6.0);
-        assert_eq!(xs[1].intersection, -4.0);
+        assert_eq!(xs[0].t, -6.0);
+        assert_eq!(xs[1].t, -4.0);
+    }
+
+    #[test]
+    fn intersecting_scaled_sphere_with_ray() {
+        let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let s = Sphere::new(Some(Matrix::scaling(2.0, 2.0, 2.0)));
+        let xs = s.intersect(&ray);
+        assert_eq!(xs[0].t, 3.0);
+        assert_eq!(xs[1].t, 7.0);
     }
 }
