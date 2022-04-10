@@ -1,4 +1,4 @@
-use std::ops;
+use std::{ops};
 
 use crate::{tuples::Tuple, utils::f32_eq};
 
@@ -186,7 +186,7 @@ impl Matrix {
 
     pub fn rotation_y(radians: f32) -> Matrix {
         let mut m = Matrix::identity(4);
-        
+
         let cos = radians.cos();
         let sin = radians.sin();
 
@@ -208,6 +208,19 @@ impl Matrix {
         m.matrix[1][1] = cos;
         m.matrix[0][1] = -sin;
         m.matrix[1][0] = sin;
+
+        m
+    }
+
+    pub fn shear(x_y: f32, x_z: f32, y_x: f32, y_z: f32, z_x: f32, z_y: f32) -> Matrix {
+        let mut m = Matrix::identity(4);
+
+        m.matrix[0][1] = x_y;
+        m.matrix[0][2] = x_z;
+        m.matrix[1][0] = y_x;
+        m.matrix[1][2] = y_z;
+        m.matrix[2][0] = z_x;
+        m.matrix[2][1] = z_y;
 
         m
     }
@@ -563,8 +576,42 @@ mod test {
         let half_quarter = Matrix::rotation_z(PI / 4.0);
         let full_quarter = Matrix::rotation_z(PI / 2.0);
         assert!(
-            &half_quarter * &p == Tuple::point((2.0_f32).sqrt() / -2.0, (2.0_f32).sqrt() / 2.0, 0.0)
+            &half_quarter * &p
+                == Tuple::point((2.0_f32).sqrt() / -2.0, (2.0_f32).sqrt() / 2.0, 0.0)
         );
         assert!(&full_quarter * &p == Tuple::point(-1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn shear() {
+        let p = Tuple::point(2.0, 3.0, 4.0);
+
+        let mut t = Matrix::shear(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        assert!(&t * &p == Tuple::point(5.0, 3.0, 4.0));
+
+        t = Matrix::shear(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+        assert!(&t * &p == Tuple::point(6.0, 3.0, 4.0));
+
+        t = Matrix::shear(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        assert!(&t * &p == Tuple::point(2.0, 5.0, 4.0));
+
+        t = Matrix::shear(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+        assert!(&t * &p == Tuple::point(2.0, 7.0, 4.0));
+
+        t = Matrix::shear(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        assert!(&t * &p == Tuple::point(2.0, 3.0, 6.0));
+
+        t = Matrix::shear(0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+        assert!(&t * &p == Tuple::point(2.0, 3.0, 7.0));
+    }
+
+    #[test]
+    fn chained_transformations() {
+        let p = Tuple::point(1.0, 0.0, 1.0);
+        let A = Matrix::rotation_x(PI / 2.0);
+        let B = Matrix::scaling(5.0, 5.0, 5.0);
+        let C = Matrix::translation(10.0, 5.0, 7.0);
+        let T = &(&C * &B) * &A;
+        assert!(&T * &p == Tuple::point(15.0, 0.0, 7.0));
     }
 }
