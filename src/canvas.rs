@@ -18,8 +18,8 @@ impl Canvas {
         }
     }
 
-    pub fn write_pixel(&mut self, i: usize, j: usize, c: Color) {
-        self.canvas[i][j] = c;
+    pub fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
+        self.canvas[x][y] = c;
     }
 
     pub fn get_pixel(&self, i: usize, j: usize) -> Color {
