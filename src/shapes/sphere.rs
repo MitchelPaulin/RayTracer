@@ -113,4 +113,12 @@ mod test {
         assert_eq!(xs[0].t, 3.0);
         assert_eq!(xs[1].t, 7.0);
     }
+
+    #[test]
+    fn intersecting_translated_sphere_with_ray() {
+        let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let s = Sphere::new(Some(Matrix::translation(5.0, 0.0, 0.0)));
+        let xs = s.intersect(&ray);
+        assert!(xs.is_empty());
+    }
 }
