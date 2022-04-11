@@ -163,6 +163,15 @@ impl Tuple {
             self.x * other.y - self.y * other.x,
         )
     }
+
+    /*
+        Reflect a vector around a given normal vector
+    */
+    pub fn reflect(&self, normal_vector: &Tuple) -> Tuple {
+        assert!(self.is_vector() && normal_vector.is_vector());
+        let scalar = *normal_vector * 2.0 * self.dot(normal_vector);
+        *self - scalar
+    }
 }
 
 #[cfg(test)]
@@ -343,5 +352,21 @@ mod test {
         c = Tuple::cross(&b, &a);
         res = Tuple::vector(1.0, -2.0, 1.0);
         assert!(c == res);
+    }
+
+    #[test]
+    fn reflect_90() {
+        let res = Tuple::vector(1.0, -1.0, 0.0).reflect(&Tuple::vector(0.0, 1.0, 0.0));
+        assert!(res == Tuple::vector(1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn reflect_slanted() {
+        let res = Tuple::vector(0.0, -1.0, 0.0).reflect(&Tuple::vector(
+            (2.0_f32).sqrt() / 2.0,
+            (2.0_f32).sqrt() / 2.0,
+            0.0,
+        ));
+        assert!(res == Tuple::vector(1.0, 0.0, 0.0));
     }
 }

@@ -1,32 +1,44 @@
 #![allow(dead_code, non_snake_case)]
 
-use draw::{canvas::Canvas, color::Color};
-use math::{matrix::Matrix, ray::Ray, tuples::Tuple};
-use shapes::{intersect::Intersect, sphere::Sphere};
+use draw::{canvas::Canvas, color::Color, light::PointLight};
+use math::{ray::Ray, tuples::Tuple};
+use shapes::{
+    intersect::{hit, Intersect},
+    sphere::Sphere,
+};
 
 mod draw;
 mod math;
 mod shapes;
 fn main() {
-    let mut c = Canvas::new(1000, 1000);
+    let ray_origin = Tuple::point(0.0, 0.0, -5.0);
+    let wall_z = 10.0;
+    let wall_size = 7.0;
+    let canvas_pixels = 1000;
+    let pixel_size = wall_size / canvas_pixels as f32;
+    let half = wall_size as f32 / 2.0;
 
-    let sphere_transform = &Matrix::translation(500., 500., 0.) * &Matrix::scaling(100., 100., 1.0);
+    let mut c = Canvas::new(canvas_pixels, canvas_pixels);
+    let s = Sphere::new(None);
 
-    let sphere = Sphere::new(Some(sphere_transform));
+    let light = PointLight::new(Color::white(), Tuple::point(-10.0, 10.0, -10.));
 
-    for x in 0..1000 {
-        for y in 0..1000 {
-            let ray = Ray::new(
-                Tuple::point(x as f32, y as f32, 0.0),
-                Tuple::vector(0.0, 0.0, -1.0),
-            );
-            if !sphere.intersect(&ray).is_empty() {
-                c.write_pixel(x, y, Color::new(1.0, 0.0, 0.0));
-            } else {
-                c.write_pixel(x, y, Color::new(0.0, 0.0, 0.0));
+    for y in 0..canvas_pixels {
+        let world_y = half - pixel_size * (y as f32);
+        for x in 0..canvas_pixels {
+            let world_x = -half + pixel_size * x as f32;
+            let position = Tuple::point(world_x as f32, world_y as f32, wall_z);
+
+            let r = Ray::new(ray_origin, (position - ray_origin).normalize());
+            let xs = s.intersect(&r);
+            let hits = hit(xs);
+            if let Some(h) = hits {
+                let point = r.position(h.t);
+                let normal = s.normal_at(point);
+                let eye = -r.direction;
+                c.write_pixel(x, y, light.lighting(s.material, point, eye, normal));
             }
         }
-        println!("Finished line {} out of 1000", x);
     }
 
     c.write_to_ppm();

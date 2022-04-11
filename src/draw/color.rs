@@ -137,6 +137,14 @@ impl Color {
         }
     }
 
+    pub fn black() -> Color {
+        Color {
+            r: 0.0,
+            b: 0.0,
+            g: 0.0,
+        }
+    }
+
     fn clamp(val: f32) -> u8 {
         if val < 0.0 {
             0

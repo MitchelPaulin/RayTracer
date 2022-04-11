@@ -15,7 +15,7 @@ impl Canvas {
         Canvas {
             width,
             height,
-            canvas: vec![vec![Color::white(); width]; height],
+            canvas: vec![vec![Color::black(); width]; height],
         }
     }
 
