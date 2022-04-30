@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use draw::{canvas::Canvas, color::Color, light::PointLight};
+use draw::{canvas::Canvas, color::Color, light::PointLight, material::Material};
 use math::{ray::Ray, tuples::Tuple};
 use shapes::{
     intersect::{hit, Intersect},
@@ -19,7 +19,11 @@ fn main() {
     let half = wall_size as f32 / 2.0;
 
     let mut c = Canvas::new(canvas_pixels, canvas_pixels);
-    let s = Sphere::new(None);
+    let mut s = Sphere::new(None);
+
+    let mut m = Material::default_material();
+    m.color = Color::new(1.0, 0.0, 1.0);
+    s.material = m;
 
     let light = PointLight::new(Color::white(), Tuple::point(-10.0, 10.0, -10.));
 

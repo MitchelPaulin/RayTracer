@@ -16,6 +16,9 @@ impl PointLight {
         }
     }
 
+    /*
+        Implementation of the Phong reflection model 
+    */
     pub fn lighting(
         &self,
         material: Material,
@@ -29,7 +32,10 @@ impl PointLight {
         // find the direction to the light source
         let lightv = (self.position - position).normalize();
 
-        // compute the ambient contribution
+        /*
+            Compute the ambient contribution which is light from other objects
+            in the scene, for out purposes we just have this as a constant
+         */
         let ambient = effective_color * material.ambient;
 
         /*
@@ -40,11 +46,13 @@ impl PointLight {
         let light_dot_normal = lightv.dot(&normalv);
         let diffuse;
         let specular;
+
         if light_dot_normal < 0.0 {
+            // light is behind shape, no contribution to final color
             diffuse = Color::black();
             specular = Color::black();
         } else {
-            // compute the diffuse contribution
+            // compute the diffuse contribution, the light spreading over the surface
             diffuse = effective_color * material.diffuse * light_dot_normal;
 
             /*
@@ -58,7 +66,10 @@ impl PointLight {
             if reflect_dot_eye <= 0.0 {
                 specular = Color::black();
             } else {
-                // computer the specular contribution
+                /*
+                    Compute the specular contribution, this is the bright dot 
+                    reflection on the shape from the light itself
+                */
                 let factor = reflect_dot_eye.powf(material.shininess);
                 specular = self.intensity * material.specular * factor;
             }

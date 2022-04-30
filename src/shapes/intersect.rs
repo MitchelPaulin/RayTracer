@@ -13,7 +13,9 @@ pub trait Intersect {
 /*
     Given a list of intersections determine which one would be visible,
 
-    For our purposes this is the intersection with smallest non negative value
+    For our purposes this is the intersection with smallest non negative value,
+    i.e. the one closet to the camera, a negative value indicates the intersection 
+    happened behind the camera and hence should not be shown
 */
 pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
     if intersections.is_empty() {
@@ -34,7 +36,7 @@ pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
 #[cfg(test)]
 mod test {
 
-    use crate::{shapes::sphere::Sphere};
+    use crate::shapes::sphere::Sphere;
 
     use super::*;
 

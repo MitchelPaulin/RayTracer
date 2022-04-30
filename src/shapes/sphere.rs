@@ -31,7 +31,7 @@ impl Sphere {
         let mut inv_sphere_transform = self.transform.inverse();
         // convert form world space to object space
         let object_point = &inv_sphere_transform * &world_point;
-        // find the normal vector in object space
+        // find the normal vector in object space (i.e. a unit sphere at the origin)
         let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
 
         // convert the normal vector in object space back to world space
@@ -44,14 +44,21 @@ impl Sphere {
 
 impl Intersect for Sphere {
     /*
-        Determine at what points the ray interests the sphere, if any
+        Determine at what points the ray intersects the sphere, if any
     */
     fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
+        /*
+            Rather than transforming the sphere we can transform the ray by the inverse of the sphere transform,
+            this has the same effect on the resulting intersections and allows us to assume were still
+            working with a unit sphere
+        */
         let inv = self.transform.inverse();
         let transformed_ray = ray.apply_transform(&inv);
 
+        // cast the ray
         let sphere_to_ray = transformed_ray.origin - Tuple::point(0.0, 0.0, 0.0);
 
+        // calculate the discriminant
         let a = transformed_ray.direction.dot(&transformed_ray.direction);
         let b = 2.0 * sphere_to_ray.dot(&transformed_ray.direction);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
