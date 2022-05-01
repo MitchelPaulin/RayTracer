@@ -58,9 +58,12 @@ impl World {
 
 #[cfg(test)]
 mod test {
+    use std::f32::consts::PI;
+
     use crate::{
         draw::{color::Color, material::Material},
         math::{matrix::Matrix, tuples::Tuple, utils::f32_eq},
+        scene::camera::{Camera, view_transform},
         shapes::{intersect::prepare_computations, sphere::Sphere},
     };
 
@@ -87,6 +90,17 @@ mod test {
         w.objects.push(Box::new(s2));
 
         w
+    }
+
+    fn rendering_a_world_with_a_camera() {
+        let w = get_populated_world();
+        let from = Tuple::point(0.0, 0.0, -5.0);
+        let to = Tuple::point(0.0, 0.0, 0.0);
+        let up = Tuple::vector(0.0, 1.0, 0.0);
+        let transform = view_transform(from, to, up);
+        let c = Camera::new_with_transform(11, 11, PI / 2.0, transform);
+        let image = c.render(&w);
+        assert_eq!(image.get_pixel(5, 5), Color::new(0.38066, 0.47583, 0.2855));
     }
 
     #[test]

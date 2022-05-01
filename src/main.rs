@@ -1,7 +1,13 @@
 #![allow(dead_code, non_snake_case)]
 
+use std::f32::consts::PI;
+
 use draw::{canvas::Canvas, color::Color, light::PointLight, material::Material};
-use math::{ray::Ray, tuples::Tuple};
+use math::{matrix::Matrix, ray::Ray, tuples::Tuple};
+use scene::{
+    camera::{self, view_transform, Camera},
+    world::{self, World},
+};
 use shapes::{
     intersect::{hit, Intersectable},
     sphere::Sphere,
@@ -9,42 +15,70 @@ use shapes::{
 
 mod draw;
 mod math;
+mod scene;
 mod shapes;
-mod world;
 fn main() {
-    let ray_origin = Tuple::point(0.0, 0.0, -5.0);
-    let wall_z = 10.0;
-    let wall_size = 7.0;
-    let canvas_pixels = 1000;
-    let pixel_size = wall_size / canvas_pixels as f32;
-    let half = wall_size as f32 / 2.0;
+    let mut floor = Sphere::new(Some(Matrix::scaling(10.0, 0.01, 10.0)));
+    floor.material.color = Color::new(1.0, 0.9, 0.9);
+    floor.material.specular = 0.0;
 
-    let mut c = Canvas::new(canvas_pixels, canvas_pixels);
-    let mut s = Sphere::new(None);
+    let mut left_wall = Sphere::new(Some(
+        &Matrix::translation(0.0, 0.0, 5.0)
+            * &(&Matrix::rotation_y(-PI / 4.0)
+                * &(&Matrix::rotation_x(PI / 2.0) * &Matrix::scaling(10.0, 0.01, 10.0))),
+    ));
+    left_wall.material = floor.material;
 
-    let mut m = Material::default_material();
-    m.color = Color::new(1.0, 0.0, 1.0);
-    s.material = m;
+    let mut right_wall = Sphere::new(Some(
+        &Matrix::translation(0.0, 0.0, 5.0)
+            * &(&Matrix::rotation_y(PI / 4.0)
+                * &(&Matrix::rotation_x(PI / 2.0) * &Matrix::scaling(10.0, 0.01, 10.0))),
+    ));
+    right_wall.material = floor.material;
 
-    let light = PointLight::new(Color::white(), Tuple::point(-10.0, 10.0, -10.));
+    let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
+    middle.material.color = Color::new(0.1, 1.0, 0.5);
+    middle.material.diffuse = 0.7;
+    middle.material.specular = 0.3;
 
-    for y in 0..canvas_pixels {
-        let world_y = half - pixel_size * (y as f32);
-        for x in 0..canvas_pixels {
-            let world_x = -half + pixel_size * x as f32;
-            let position = Tuple::point(world_x as f32, world_y as f32, wall_z);
+    let mut right = Sphere::new(Some(
+        &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
+    ));
+    right.material.color = Color::new(0.5, 1.0, 0.1);
+    right.material.diffuse = 0.7;
+    right.material.specular = 0.3;
 
-            let r = Ray::new(ray_origin, (position - ray_origin).normalize());
-            let xs = s.intersect(&r);
-            let hits = hit(xs);
-            if let Some(h) = hits {
-                let point = r.position(h.t);
-                let normal = s.normal_at(point);
-                let eye = -r.direction;
-                c.write_pixel(x, y, light.lighting(s.material, point, eye, normal));
-            }
-        }
-    }
+    let mut left = Sphere::new(Some(
+        &Matrix::translation(-1.5, 0.33, -0.75) * &Matrix::scaling(0.33, 0.33, 0.33),
+    ));
+    left.material.color = Color::new(1.0, 0.8, 0.1);
+    left.material.diffuse = 0.7;
+    left.material.specular = 0.3;
 
-    c.write_to_ppm();
+    let mut world = World::new();
+    world.objects = vec![
+        Box::new(floor),
+        Box::new(left_wall),
+        Box::new(right_wall),
+        Box::new(left),
+        Box::new(middle),
+        Box::new(right),
+    ];
+    world.light_sources = vec![PointLight::new(
+        Color::new(1.0, 1.0, 1.0),
+        Tuple::point(-10.0, 10.0, -10.),
+    )];
+
+    let camera = Camera::new_with_transform(
+        1000,
+        500,
+        PI / 3.0,
+        view_transform(
+            Tuple::point(0.0, 1.5, -5.0),
+            Tuple::point(0.0, 1.0, 0.0),
+            Tuple::vector(0.0, 1.0, 0.0),
+        ),
+    );
+    let image = camera.render(&world);
+    image.write_to_ppm();
 }

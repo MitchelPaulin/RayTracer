@@ -20,11 +20,11 @@ impl Canvas {
     }
 
     pub fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
-        self.canvas[x][y] = c;
+        self.canvas[y][x] = c;
     }
 
     pub fn get_pixel(&self, x: usize, y: usize) -> Color {
-        self.canvas[x][y]
+        self.canvas[y][x]
     }
 
     pub fn write_to_ppm(&self) {
@@ -35,10 +35,10 @@ impl Canvas {
         writeln!(&mut file, "{} {}", self.width, self.height).unwrap();
         writeln!(&mut file, "255").unwrap();
 
-        for i in 0..self.height {
+        for y in 0..self.height {
             let mut builder = Builder::default();
-            for j in 0..self.width {
-                builder.append(self.get_pixel(i, j).to_string() + " ");
+            for x in 0..self.width {
+                builder.append(self.get_pixel(x, y).to_string() + " ");
             }
             writeln!(&mut file, "{}", builder.string().unwrap()).unwrap();
         }

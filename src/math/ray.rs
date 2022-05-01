@@ -37,6 +37,12 @@ impl Ray {
     }
 }
 
+impl PartialEq for Ray {
+    fn eq(&self, other: &Self) -> bool {
+        self.origin == other.origin && self.direction == other.direction
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
