@@ -3,7 +3,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
-use super::intersect::{Intersect, Intersection};
+use super::intersect::{Intersectable, Intersection};
 
 pub struct Sphere {
     transform: Matrix,
@@ -26,8 +26,15 @@ impl Sphere {
             },
         }
     }
+}
 
-    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+impl Intersectable for Sphere {
+
+    fn get_material(&self) -> Material {
+        self.material
+    }
+
+    fn normal_at(&self, world_point: Tuple) -> Tuple {
         let mut inv_sphere_transform = self.transform.inverse();
         // convert form world space to object space
         let object_point = &inv_sphere_transform * &world_point;
@@ -40,9 +47,7 @@ impl Sphere {
         world_normal.w = 0.0;
         world_normal.normalize()
     }
-}
 
-impl Intersect for Sphere {
     /*
         Determine at what points the ray intersects the sphere, if any
     */

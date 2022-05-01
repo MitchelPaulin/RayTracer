@@ -3,13 +3,14 @@
 use draw::{canvas::Canvas, color::Color, light::PointLight, material::Material};
 use math::{ray::Ray, tuples::Tuple};
 use shapes::{
-    intersect::{hit, Intersect},
+    intersect::{hit, Intersectable},
     sphere::Sphere,
 };
 
 mod draw;
 mod math;
 mod shapes;
+mod world;
 fn main() {
     let ray_origin = Tuple::point(0.0, 0.0, -5.0);
     let wall_z = 10.0;

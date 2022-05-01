@@ -2,7 +2,7 @@ use std::{fmt, ops};
 
 use crate::math::utils::f32_eq;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
     r: f32,
     g: f32,
