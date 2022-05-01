@@ -45,10 +45,10 @@ impl World {
     }
 
     pub fn color_at(&self, ray: &Ray) -> Color {
-        let intersections = self.intersect_world(&ray);
+        let intersections = self.intersect_world(ray);
         match hit(intersections) {
             Some(hit) => {
-                let comps = prepare_computations(&hit, &ray);
+                let comps = prepare_computations(&hit, ray);
                 self.shade_hit(&comps)
             }
             None => Color::black(),

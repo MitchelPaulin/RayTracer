@@ -2,14 +2,13 @@
 
 use std::f32::consts::PI;
 
-use draw::{canvas::Canvas, color::Color, light::PointLight, material::Material};
-use math::{matrix::Matrix, ray::Ray, tuples::Tuple};
+use draw::{color::Color, light::PointLight};
+use math::{matrix::Matrix, tuples::Tuple};
 use scene::{
-    camera::{self, view_transform, Camera},
-    world::{self, World},
+    camera::{view_transform, Camera},
+    world::{World},
 };
 use shapes::{
-    intersect::{hit, Intersectable},
     sphere::Sphere,
 };
 

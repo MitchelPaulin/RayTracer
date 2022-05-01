@@ -118,7 +118,7 @@ mod test {
         let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let s = Sphere::new(None);
         let xs = s.intersect(&r);
-        assert!(xs.len() == 0);
+        assert!(xs.is_empty());
     }
 
     #[test]
