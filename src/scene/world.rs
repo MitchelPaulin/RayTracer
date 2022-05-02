@@ -92,6 +92,7 @@ mod test {
         w
     }
 
+    #[test]
     fn rendering_a_world_with_a_camera() {
         let w = get_populated_world();
         let from = Tuple::point(0.0, 0.0, -5.0);
