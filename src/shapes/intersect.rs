@@ -6,7 +6,7 @@ pub struct Intersection<'a> {
     pub t: f32,
 }
 
-pub trait Intersectable {
+pub trait Intersectable: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Vec<Intersection>;
     fn normal_at(&self, t: Tuple) -> Tuple;
     fn get_material(&self) -> Material;

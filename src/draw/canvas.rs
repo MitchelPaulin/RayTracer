@@ -27,8 +27,8 @@ impl Canvas {
         self.canvas[y][x]
     }
 
-    pub fn write_to_ppm(&self) {
-        let mut file = File::create("canvas.ppm").expect("could not create file");
+    pub fn write_to_ppm(&self, file_name: &str) {
+        let mut file = File::create(file_name).expect("could not create file");
 
         // file header
         writeln!(&mut file, "P3").unwrap();
@@ -43,4 +43,23 @@ impl Canvas {
             writeln!(&mut file, "{}", builder.string().unwrap()).unwrap();
         }
     }
+}
+
+pub fn stitch_canvases(canvases: Vec<Canvas>) -> Canvas {
+    assert!(canvases.len() > 0);
+    let width = canvases[0].width;
+    let height = canvases.iter().map(|c| c.height).sum();
+    let mut result = Canvas::new(width, height);
+    let mut res_y = 0;
+
+    for canvas in canvases {
+        for y in 0..canvas.height {
+            for x in 0..canvas.width {
+                result.write_pixel(x, res_y, canvas.get_pixel(x, y));
+            }
+            res_y += 1;
+        }
+    }
+
+    result
 }

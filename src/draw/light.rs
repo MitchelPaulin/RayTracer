@@ -17,7 +17,7 @@ impl PointLight {
     }
 
     /*
-        Implementation of the Phong reflection model 
+        Implementation of the Phong reflection model
     */
     pub fn lighting(
         &self,
@@ -33,9 +33,9 @@ impl PointLight {
         let lightv = (self.position - position).normalize();
 
         /*
-            Compute the ambient contribution which is light from other objects
-            in the scene, for out purposes we just have this as a constant
-         */
+           Compute the ambient contribution which is light from other objects
+           in the scene, for out purposes we just have this as a constant
+        */
         let ambient = effective_color * material.ambient;
 
         /*
@@ -67,7 +67,7 @@ impl PointLight {
                 specular = Color::black();
             } else {
                 /*
-                    Compute the specular contribution, this is the bright dot 
+                    Compute the specular contribution, this is the bright dot
                     reflection on the shape from the light itself
                 */
                 let factor = reflect_dot_eye.powf(material.shininess);

@@ -1,10 +1,11 @@
+use std::{sync::Arc, thread};
+
 use crate::{
-    draw::canvas::{Canvas},
+    draw::canvas::{stitch_canvases, Canvas},
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
 use super::world::World;
-
 pub struct Camera {
     hsize: usize,
     vsize: usize,
@@ -54,21 +55,6 @@ impl Camera {
             half_height,
         }
     }
-
-    pub fn render(&self, world: &World) -> Canvas {
-        let mut image = Canvas::new(self.hsize, self.vsize);
-        for y in 0..self.vsize {
-            for x in 0..self.hsize {
-                let ray = self.ray_for_pixel(x, y);
-                let color = world.color_at(&ray);
-                image.write_pixel(x, y, color);
-            }
-            println!("Rendered row {} of {}", y, self.vsize);
-        }
-
-        image
-    }
-
     /*
         For any pixel in the scene calculate a ray which
         would intersect that pixel
@@ -90,6 +76,59 @@ impl Camera {
 
         Ray::new(origin, direction)
     }
+}
+
+pub fn render(camera: Camera, world: World, threads: usize) -> Canvas {
+    assert!(threads >= 1);
+    println!("Rendering image on {} threads", threads);
+
+    let vsize_per_thread = camera.vsize / threads;
+    let mut children = vec![];
+
+    let c = Arc::new(camera);
+    let w = Arc::new(world);
+
+    for i in 0..threads {
+        let cc = c.clone();
+        let wc = w.clone();
+        children.push(thread::spawn(move || {
+            render_thread(cc, wc, vsize_per_thread, i)
+        }));
+    }
+
+    let mut result = vec![];
+    for child in children {
+        // Wait for the thread to finish. Returns a result.
+        let handle = child.join().unwrap();
+        result.push(handle);
+    }
+
+    // stitch the resulting images together
+    result.sort_by(|c1, c2| c1.1.cmp(&c2.1));
+    let mut canvases = vec![];
+    for c in result {
+        canvases.push(c.0);
+    }
+
+    stitch_canvases(canvases)
+}
+
+fn render_thread(
+    camera: Arc<Camera>,
+    world: Arc<World>,
+    vsize_per_thread: usize,
+    thread_number: usize,
+) -> (Canvas, usize) {
+    let mut image = Canvas::new(camera.hsize, vsize_per_thread);
+    for y in (vsize_per_thread * thread_number)..(vsize_per_thread * (thread_number + 1)) {
+        for x in 0..camera.hsize {
+            let ray = camera.ray_for_pixel(x, y);
+            let color = world.color_at(&ray);
+            image.write_pixel(x, y - vsize_per_thread * thread_number, color);
+        }
+    }
+    println!("Thread {} done", thread_number);
+    (image, thread_number)
 }
 
 /*

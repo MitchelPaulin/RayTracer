@@ -5,12 +5,10 @@ use std::f32::consts::PI;
 use draw::{color::Color, light::PointLight};
 use math::{matrix::Matrix, tuples::Tuple};
 use scene::{
-    camera::{view_transform, Camera},
-    world::{World},
+    camera::{render, view_transform, Camera},
+    world::World,
 };
-use shapes::{
-    sphere::Sphere,
-};
+use shapes::sphere::Sphere;
 
 mod draw;
 mod math;
@@ -78,6 +76,7 @@ fn main() {
             Tuple::vector(0.0, 1.0, 0.0),
         ),
     );
-    let image = camera.render(&world);
-    image.write_to_ppm();
+    let image = render(camera, world, 6);
+    image.write_to_ppm("canvas.ppm");
+    println!("Image rendering finished!");
 }
