@@ -1,6 +1,6 @@
 use crate::{
     draw::{color::Color, light::PointLight},
-    math::ray::Ray,
+    math::{ray::Ray, tuples::Tuple},
     shapes::intersect::{hit, prepare_computations, Computations, Intersectable, Intersection},
 };
 
@@ -38,6 +38,7 @@ impl World {
                 comps.point,
                 comps.eyev,
                 comps.normalv,
+                self.is_shadowed(light, &comps.over_point),
             );
         }
 
@@ -54,6 +55,26 @@ impl World {
             None => Color::black(),
         }
     }
+
+    fn is_shadowed(&self, light_source: &PointLight, point: &Tuple) -> bool {
+        assert!(point.is_point());
+
+        // get the vector from the point to the light source
+        let v = light_source.position - *point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+
+        // cast a ray from that point towards the source of light
+        let r = Ray::new(*point, direction);
+        let intersections = self.intersect_world(&r);
+        let h = hit(intersections);
+
+        // if this ray collided with an object on it way to the light, return true otherwise false
+        match h {
+            Some(hit) => hit.t < distance,
+            None => false,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -63,7 +84,7 @@ mod test {
     use crate::{
         draw::{color::Color, material::Material},
         math::{matrix::Matrix, tuples::Tuple, utils::f32_eq},
-        scene::camera::{Camera, view_transform, render},
+        scene::camera::{render, view_transform, Camera},
         shapes::{intersect::prepare_computations, sphere::Sphere},
     };
 
@@ -156,5 +177,33 @@ mod test {
 
         let ray = Ray::new(Tuple::point(0.0, 0.0, 0.75), Tuple::vector(0.0, 0.0, -1.0));
         assert_eq!(w.color_at(&ray), c);
+    }
+
+    #[test]
+    fn no_shadow() {
+        let w = get_populated_world();
+        let p = Tuple::point(0.0, 10.0, 0.0);
+        assert!(!w.is_shadowed(&w.light_sources[0], &p));
+    }
+
+    #[test]
+    fn is_shadow_behind_object() {
+        let w = get_populated_world();
+        let p = Tuple::point(10.0, -10.0, 10.0);
+        assert!(w.is_shadowed(&w.light_sources[0], &p));
+    }
+
+    #[test]
+    fn no_shadow_point_behind_light() {
+        let w = get_populated_world();
+        let p = Tuple::point(-20.0, 20.0, -20.0);
+        assert!(!w.is_shadowed(&w.light_sources[0], &p));
+    }
+
+    #[test]
+    fn no_shadow_object_behind_point() {
+        let w = get_populated_world();
+        let p = Tuple::point(-2.0, 2.0, -2.0);
+        assert!(!w.is_shadowed(&w.light_sources[0], &p));
     }
 }

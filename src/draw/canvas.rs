@@ -46,7 +46,7 @@ impl Canvas {
 }
 
 pub fn stitch_canvases(canvases: Vec<Canvas>) -> Canvas {
-    assert!(canvases.len() > 0);
+    assert!(!canvases.is_empty());
     let width = canvases[0].width;
     let height = canvases.iter().map(|c| c.height).sum();
     let mut result = Canvas::new(width, height);

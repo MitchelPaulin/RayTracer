@@ -1,4 +1,7 @@
-use crate::{math::{ray::Ray, tuples::Tuple}, draw::material::Material};
+use crate::{
+    draw::material::Material,
+    math::{ray::Ray, tuples::Tuple},
+};
 
 #[derive(Clone, Copy)]
 pub struct Intersection<'a> {
@@ -42,9 +45,10 @@ pub struct Computations<'a> {
     pub t: f32,
     pub object: &'a dyn Intersectable,
     pub point: Tuple,
+    pub over_point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
-    pub inside: bool // if the ray was cast from inside the object
+    pub inside: bool, // if the ray was cast from inside the object
 }
 
 pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) -> Computations<'a> {
@@ -52,6 +56,7 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
     let mut normalv = intersection.shape.normal_at(point);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
+    let over_point = point + normalv * 0.01;
 
     if inside {
         normalv *= -1.0;
@@ -61,16 +66,20 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
         t: intersection.t,
         object: intersection.shape,
         point,
+        over_point,
         eyev,
         normalv,
-        inside
+        inside,
     }
 }
 
 #[cfg(test)]
 mod test {
 
-    use crate::{shapes::sphere::Sphere, math::utils::f32_eq};
+    use crate::{
+        math::{matrix::Matrix, utils::f32_eq},
+        shapes::sphere::Sphere,
+    };
 
     use super::*;
 
@@ -136,5 +145,15 @@ mod test {
         assert_eq!(comps.eyev, Tuple::vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, Tuple::vector(0.0, 0.0, -1.0));
         assert!(comps.inside);
+    }
+
+    #[test]
+    fn hit_should_offset_point() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let s = Sphere::new(Some(Matrix::translation(0.0, 0.0, 1.0)));
+        let i = s.intersect(&r)[0];
+        let comps = prepare_computations(&i, &r);
+        assert!(comps.over_point.z < -0.001 / 2.);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }

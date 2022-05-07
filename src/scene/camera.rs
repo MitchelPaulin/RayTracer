@@ -92,7 +92,7 @@ pub fn render(camera: Camera, world: World, threads: usize) -> Canvas {
         let cc = c.clone();
         let wc = w.clone();
         children.push(thread::spawn(move || {
-            render_thread(cc, wc, vsize_per_thread, i)
+            (render_thread(cc, wc, vsize_per_thread, i), i)
         }));
     }
 
@@ -118,7 +118,7 @@ fn render_thread(
     world: Arc<World>,
     vsize_per_thread: usize,
     thread_number: usize,
-) -> (Canvas, usize) {
+) -> Canvas {
     let mut image = Canvas::new(camera.hsize, vsize_per_thread);
     for y in (vsize_per_thread * thread_number)..(vsize_per_thread * (thread_number + 1)) {
         for x in 0..camera.hsize {
@@ -128,7 +128,7 @@ fn render_thread(
         }
     }
     println!("Thread {} done", thread_number);
-    (image, thread_number)
+    image
 }
 
 /*

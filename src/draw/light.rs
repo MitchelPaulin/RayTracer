@@ -4,7 +4,7 @@ use super::{color::Color, material::Material};
 
 pub struct PointLight {
     intensity: Color,
-    position: Tuple,
+    pub position: Tuple,
 }
 
 impl PointLight {
@@ -25,6 +25,7 @@ impl PointLight {
         position: Tuple,
         eyev: Tuple,
         normalv: Tuple,
+        is_shadow: bool,
     ) -> Color {
         // combine the surface color with the lights color/intensity
         let effective_color = material.color * self.intensity;
@@ -47,8 +48,8 @@ impl PointLight {
         let diffuse;
         let specular;
 
-        if light_dot_normal < 0.0 {
-            // light is behind shape, no contribution to final color
+        if is_shadow || light_dot_normal < 0.0 {
+            // light is behind shape or there is another object between it and the source, no contribution to final color
             diffuse = Color::black();
             specular = Color::black();
         } else {
@@ -93,7 +94,7 @@ mod test {
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv);
+        let res = light.lighting(m, position, eyev, normalv, false);
         assert!(res == Color::new(1.9, 1.9, 1.9));
     }
 
@@ -105,7 +106,7 @@ mod test {
         let eyev = Tuple::vector(0.0, (2.0_f32).sqrt() / 2.0, (2.0_f32).sqrt() / -2.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv);
+        let res = light.lighting(m, position, eyev, normalv, false);
         assert!(res == Color::new(1.0, 1.0, 1.0));
     }
 
@@ -117,7 +118,19 @@ mod test {
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 10.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv);
+        let res = light.lighting(m, position, eyev, normalv, false);
         assert!(res == Color::new(0.7364, 0.7364, 0.7364));
+    }
+
+    #[test]
+    fn lighting_with_shadow() {
+        let position = Tuple::point(0.0, 0.0, 0.0);
+        let m = Material::default_material();
+
+        let eyev = Tuple::vector(0.0, 0.0, -1.0);
+        let normalv = Tuple::vector(0.0, 0.0, -1.0);
+        let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
+        let res = light.lighting(m, position, eyev, normalv, true);
+        assert!(res == Color::new(0.1, 0.1, 0.1));
     }
 }

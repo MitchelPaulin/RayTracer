@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Instant};
 
 use draw::{color::Color, light::PointLight};
 use math::{matrix::Matrix, tuples::Tuple};
@@ -76,7 +76,12 @@ fn main() {
             Tuple::vector(0.0, 1.0, 0.0),
         ),
     );
+
+    let start = Instant::now();
     let image = render(camera, world, 6);
     image.write_to_ppm("canvas.ppm");
-    println!("Image rendering finished!");
+    println!(
+        "Image rendering finished in {}s. File written to canvas.ppm",
+        Instant::now().duration_since(start).as_secs()
+    );
 }
