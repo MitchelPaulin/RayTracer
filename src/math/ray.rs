@@ -13,17 +13,17 @@ impl Ray {
         Ray { origin, direction }
     }
 
-    pub fn position(&self, t: f32) -> Tuple {
+    pub fn position(&self, t: f64) -> Tuple {
         self.origin + self.direction * t
     }
 
-    pub fn translate(&self, x: f32, y: f32, z: f32) -> Ray {
+    pub fn translate(&self, x: f64, y: f64, z: f64) -> Ray {
         let translation = Matrix::translation(x, y, z);
 
         self.apply_transform(&translation)
     }
 
-    pub fn scale(&self, x: f32, y: f32, z: f32) -> Ray {
+    pub fn scale(&self, x: f64, y: f64, z: f64) -> Ray {
         let scale = Matrix::scaling(x, y, z);
 
         self.apply_transform(&scale)

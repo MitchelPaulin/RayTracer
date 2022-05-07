@@ -3,10 +3,10 @@ use super::color::Color;
 #[derive(Copy, Clone)]
 pub struct Material {
     pub color: Color,
-    pub ambient: f32,   // between 0 and 1
-    pub diffuse: f32,   // between 0 and 1
-    pub specular: f32,  // between 0 and 1
-    pub shininess: f32, // between 10 and 200 (large to small)
+    pub ambient: f64,   // between 0 and 1
+    pub diffuse: f64,   // between 0 and 1
+    pub specular: f64,  // between 0 and 1
+    pub shininess: f64, // between 10 and 200 (large to small)
 }
 
 impl Material {

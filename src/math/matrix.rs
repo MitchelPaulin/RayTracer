@@ -2,7 +2,7 @@ use std::ops;
 
 use crate::math::tuples::Tuple;
 
-use super::utils::f32_eq;
+use super::utils::f64_eq;
 
 /*
     A specialized matrix library for only square matrices
@@ -11,7 +11,7 @@ use super::utils::f32_eq;
 #[derive(Clone, Debug)]
 pub struct Matrix {
     pub size: usize,
-    pub matrix: Vec<Vec<f32>>,
+    pub matrix: Vec<Vec<f64>>,
 }
 
 impl PartialEq for Matrix {
@@ -21,7 +21,7 @@ impl PartialEq for Matrix {
         }
         for i in 0..self.size {
             for j in 0..self.size {
-                if !f32_eq(self.matrix[i][j], other.matrix[i][j]) {
+                if !f64_eq(self.matrix[i][j], other.matrix[i][j]) {
                     return false;
                 }
             }
@@ -76,11 +76,11 @@ impl Matrix {
         }
     }
 
-    pub fn get(&self, i: usize, j: usize) -> f32 {
+    pub fn get(&self, i: usize, j: usize) -> f64 {
         self.matrix[i][j]
     }
 
-    pub fn set(&mut self, i: usize, j: usize, val: f32) {
+    pub fn set(&mut self, i: usize, j: usize, val: f64) {
         self.matrix[i][j] = val;
     }
 
@@ -102,7 +102,7 @@ impl Matrix {
         }
     }
 
-    pub fn determinant(&self) -> f32 {
+    pub fn determinant(&self) -> f64 {
         if self.size == 2 {
             return self.matrix[0][0] * self.matrix[1][1] - self.matrix[0][1] * self.matrix[1][0];
         }
@@ -125,12 +125,12 @@ impl Matrix {
         ret
     }
 
-    pub fn minor(&self, i: usize, j: usize) -> f32 {
+    pub fn minor(&self, i: usize, j: usize) -> f64 {
         let m = self.sub_matrix(i, j);
         m.determinant()
     }
 
-    pub fn cofactor(&self, i: usize, j: usize) -> f32 {
+    pub fn cofactor(&self, i: usize, j: usize) -> f64 {
         let m = self.minor(i, j);
         if (i + j) & 1 == 0 {
             m
@@ -155,7 +155,7 @@ impl Matrix {
         inverse
     }
 
-    pub fn translation(x: f32, y: f32, z: f32) -> Matrix {
+    pub fn translation(x: f64, y: f64, z: f64) -> Matrix {
         let mut m = Matrix::identity(4);
         m.matrix[0][3] = x;
         m.matrix[1][3] = y;
@@ -163,7 +163,7 @@ impl Matrix {
         m
     }
 
-    pub fn scaling(x: f32, y: f32, z: f32) -> Matrix {
+    pub fn scaling(x: f64, y: f64, z: f64) -> Matrix {
         let mut m = Matrix::new(4);
         m.matrix[0][0] = x;
         m.matrix[1][1] = y;
@@ -172,7 +172,7 @@ impl Matrix {
         m
     }
 
-    pub fn rotation_x(radians: f32) -> Matrix {
+    pub fn rotation_x(radians: f64) -> Matrix {
         let mut m = Matrix::identity(4);
 
         let cos = radians.cos();
@@ -186,7 +186,7 @@ impl Matrix {
         m
     }
 
-    pub fn rotation_y(radians: f32) -> Matrix {
+    pub fn rotation_y(radians: f64) -> Matrix {
         let mut m = Matrix::identity(4);
 
         let cos = radians.cos();
@@ -200,7 +200,7 @@ impl Matrix {
         m
     }
 
-    pub fn rotation_z(radians: f32) -> Matrix {
+    pub fn rotation_z(radians: f64) -> Matrix {
         let mut m = Matrix::identity(4);
 
         let cos = radians.cos();
@@ -214,7 +214,7 @@ impl Matrix {
         m
     }
 
-    pub fn shear(x_y: f32, x_z: f32, y_x: f32, y_z: f32, z_x: f32, z_y: f32) -> Matrix {
+    pub fn shear(x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) -> Matrix {
         let mut m = Matrix::identity(4);
 
         m.matrix[0][1] = x_y;
@@ -230,7 +230,7 @@ impl Matrix {
 
 #[cfg(test)]
 mod test {
-    use std::{f32::consts::PI, vec};
+    use std::{f64::consts::PI, vec};
 
     use super::*;
 
@@ -548,7 +548,7 @@ mod test {
         let half_quarter = Matrix::rotation_x(PI / 4.0);
         let full_quarter = Matrix::rotation_x(PI / 2.0);
         assert!(
-            &half_quarter * &p == Tuple::point(0.0, (2.0_f32).sqrt() / 2.0, (2.0_f32).sqrt() / 2.0)
+            &half_quarter * &p == Tuple::point(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / 2.0)
         );
         assert!(&full_quarter * &p == Tuple::point(0.0, 0.0, 1.0));
     }
@@ -558,7 +558,7 @@ mod test {
         let p = Tuple::point(0.0, 1.0, 0.0);
         let half_quarter = Matrix::rotation_x(PI / 4.0);
         let inv = half_quarter.inverse();
-        assert!(&inv * &p == Tuple::point(0.0, (2.0_f32).sqrt() / 2.0, (2.0_f32).sqrt() / -2.0));
+        assert!(&inv * &p == Tuple::point(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / -2.0));
     }
 
     #[test]
@@ -567,7 +567,7 @@ mod test {
         let half_quarter = Matrix::rotation_y(PI / 4.0);
         let full_quarter = Matrix::rotation_y(PI / 2.0);
         assert!(
-            &half_quarter * &p == Tuple::point((2.0_f32).sqrt() / 2.0, 0.0, (2.0_f32).sqrt() / 2.0)
+            &half_quarter * &p == Tuple::point((2.0_f64).sqrt() / 2.0, 0.0, (2.0_f64).sqrt() / 2.0)
         );
         assert!(&full_quarter * &p == Tuple::point(1.0, 0.0, 0.0));
     }
@@ -579,7 +579,7 @@ mod test {
         let full_quarter = Matrix::rotation_z(PI / 2.0);
         assert!(
             &half_quarter * &p
-                == Tuple::point((2.0_f32).sqrt() / -2.0, (2.0_f32).sqrt() / 2.0, 0.0)
+                == Tuple::point((2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0, 0.0)
         );
         assert!(&full_quarter * &p == Tuple::point(-1.0, 0.0, 0.0));
     }

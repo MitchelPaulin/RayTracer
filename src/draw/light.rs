@@ -103,7 +103,7 @@ mod test {
         let position = Tuple::point(0.0, 0.0, 0.0);
         let m = Material::default_material();
 
-        let eyev = Tuple::vector(0.0, (2.0_f32).sqrt() / 2.0, (2.0_f32).sqrt() / -2.0);
+        let eyev = Tuple::vector(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / -2.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
         let res = light.lighting(m, position, eyev, normalv, false);

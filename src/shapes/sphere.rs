@@ -89,7 +89,7 @@ impl Intersectable for Sphere {
 
 #[cfg(test)]
 mod test {
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     use crate::math::tuples::Tuple;
 
@@ -199,8 +199,8 @@ mod test {
 
         let n = s.normal_at(Tuple::point(
             0.0,
-            (2.0_f32).sqrt() / 2.0,
-            -(2.0_f32).sqrt() / 2.0,
+            (2.0_f64).sqrt() / 2.0,
+            -(2.0_f64).sqrt() / 2.0,
         ));
         assert!(n == Tuple::vector(0.0, 0.97014, -0.24254));
     }

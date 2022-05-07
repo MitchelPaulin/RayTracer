@@ -1,13 +1,13 @@
 use std::ops;
 
-use super::utils::f32_eq;
+use super::utils::f64_eq;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Tuple {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub w: f64,
 }
 
 impl ops::Add for Tuple {
@@ -60,16 +60,16 @@ impl ops::SubAssign for Tuple {
     }
 }
 
-impl ops::Div<f32> for Tuple {
+impl ops::Div<f64> for Tuple {
     type Output = Self;
-    fn div(self, rhs: f32) -> Tuple {
+    fn div(self, rhs: f64) -> Tuple {
         assert!(self.is_vector());
         Tuple::vector(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
 
-impl ops::DivAssign<f32> for Tuple {
-    fn div_assign(&mut self, rhs: f32) {
+impl ops::DivAssign<f64> for Tuple {
+    fn div_assign(&mut self, rhs: f64) {
         assert!(self.is_vector());
         self.x /= rhs;
         self.y /= rhs;
@@ -77,16 +77,16 @@ impl ops::DivAssign<f32> for Tuple {
     }
 }
 
-impl ops::Mul<f32> for Tuple {
+impl ops::Mul<f64> for Tuple {
     type Output = Self;
-    fn mul(self, rhs: f32) -> Tuple {
+    fn mul(self, rhs: f64) -> Tuple {
         assert!(self.is_vector());
         Tuple::vector(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
-impl ops::MulAssign<f32> for Tuple {
-    fn mul_assign(&mut self, rhs: f32) {
+impl ops::MulAssign<f64> for Tuple {
+    fn mul_assign(&mut self, rhs: f64) {
         assert!(self.is_vector());
         self.x *= rhs;
         self.y *= rhs;
@@ -110,35 +110,35 @@ impl ops::Neg for Tuple {
 
 impl PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
-        f32_eq(self.x, other.x)
-            && f32_eq(self.y, other.y)
-            && f32_eq(self.z, other.z)
-            && f32_eq(self.w, other.w)
+        f64_eq(self.x, other.x)
+            && f64_eq(self.y, other.y)
+            && f64_eq(self.z, other.z)
+            && f64_eq(self.w, other.w)
     }
 }
 
 impl Tuple {
-    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
         Tuple { x, y, z, w }
     }
 
-    pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
+    pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
         Tuple { x, y, z, w: 0.0 }
     }
 
-    pub fn point(x: f32, y: f32, z: f32) -> Tuple {
+    pub fn point(x: f64, y: f64, z: f64) -> Tuple {
         Tuple { x, y, z, w: 1.0 }
     }
 
     pub fn is_vector(&self) -> bool {
-        f32_eq(self.w, 0.0)
+        f64_eq(self.w, 0.0)
     }
 
     pub fn is_point(&self) -> bool {
-        f32_eq(self.w, 1.0)
+        f64_eq(self.w, 1.0)
     }
 
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> f64 {
         assert!(self.is_vector());
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
@@ -146,11 +146,11 @@ impl Tuple {
     pub fn normalize(&self) -> Tuple {
         assert!(self.is_vector());
         let mag = self.magnitude();
-        assert!(!f32_eq(mag, 0.0));
+        assert!(!f64_eq(mag, 0.0));
         Tuple::vector(self.x / mag, self.y / mag, self.z / mag)
     }
 
-    pub fn dot(&self, other: &Tuple) -> f32 {
+    pub fn dot(&self, other: &Tuple) -> f64 {
         assert!(self.is_vector());
         self.x * other.x + self.y * other.y + self.z * other.z
     }
@@ -317,8 +317,8 @@ mod test {
 
         v = Tuple::vector(-1.0, -2.0, -3.0);
         let mag = v.magnitude();
-        let expected = 14.0_f32.sqrt();
-        assert!(f32_eq(mag, expected))
+        let expected = 14.0_f64.sqrt();
+        assert!(f64_eq(mag, expected))
     }
 
     #[test]
@@ -363,8 +363,8 @@ mod test {
     #[test]
     fn reflect_slanted() {
         let res = Tuple::vector(0.0, -1.0, 0.0).reflect(&Tuple::vector(
-            (2.0_f32).sqrt() / 2.0,
-            (2.0_f32).sqrt() / 2.0,
+            (2.0_f64).sqrt() / 2.0,
+            (2.0_f64).sqrt() / 2.0,
             0.0,
         ));
         assert!(res == Tuple::vector(1.0, 0.0, 0.0));

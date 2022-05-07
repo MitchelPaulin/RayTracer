@@ -79,11 +79,11 @@ impl World {
 
 #[cfg(test)]
 mod test {
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
     use crate::{
         draw::{color::Color, material::Material},
-        math::{matrix::Matrix, tuples::Tuple, utils::f32_eq},
+        math::{matrix::Matrix, tuples::Tuple, utils::f64_eq},
         scene::camera::{render, view_transform, Camera},
         shapes::{intersect::prepare_computations, sphere::Sphere},
     };
@@ -131,10 +131,10 @@ mod test {
         let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let intersections = world.intersect_world(&ray);
         assert_eq!(intersections.len(), 4);
-        assert!(f32_eq(intersections[0].t, 4.0));
-        assert!(f32_eq(intersections[1].t, 4.5));
-        assert!(f32_eq(intersections[2].t, 5.5));
-        assert!(f32_eq(intersections[3].t, 6.0));
+        assert!(f64_eq(intersections[0].t, 4.0));
+        assert!(f64_eq(intersections[1].t, 4.5));
+        assert!(f64_eq(intersections[2].t, 5.5));
+        assert!(f64_eq(intersections[3].t, 6.0));
     }
 
     #[test]

@@ -1,12 +1,12 @@
 use std::{fmt, ops};
 
-use crate::math::utils::f32_eq;
+use crate::math::utils::f64_eq;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Color {
-    r: f32,
-    g: f32,
-    b: f32,
+    r: f64,
+    g: f64,
+    b: f64,
 }
 
 impl ops::Add for Color {
@@ -49,9 +49,9 @@ impl ops::SubAssign for Color {
     }
 }
 
-impl ops::Div<f32> for Color {
+impl ops::Div<f64> for Color {
     type Output = Self;
-    fn div(self, rhs: f32) -> Color {
+    fn div(self, rhs: f64) -> Color {
         Color {
             r: self.r / rhs,
             g: self.g / rhs,
@@ -60,17 +60,17 @@ impl ops::Div<f32> for Color {
     }
 }
 
-impl ops::DivAssign<f32> for Color {
-    fn div_assign(&mut self, rhs: f32) {
+impl ops::DivAssign<f64> for Color {
+    fn div_assign(&mut self, rhs: f64) {
         self.r /= rhs;
         self.g /= rhs;
         self.b /= rhs;
     }
 }
 
-impl ops::Mul<f32> for Color {
+impl ops::Mul<f64> for Color {
     type Output = Self;
-    fn mul(self, rhs: f32) -> Color {
+    fn mul(self, rhs: f64) -> Color {
         Color {
             r: self.r * rhs,
             g: self.g * rhs,
@@ -79,8 +79,8 @@ impl ops::Mul<f32> for Color {
     }
 }
 
-impl ops::MulAssign<f32> for Color {
-    fn mul_assign(&mut self, rhs: f32) {
+impl ops::MulAssign<f64> for Color {
+    fn mul_assign(&mut self, rhs: f64) {
         self.r *= rhs;
         self.g *= rhs;
         self.b *= rhs;
@@ -120,12 +120,12 @@ impl fmt::Display for Color {
 
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
-        f32_eq(self.r, other.r) && f32_eq(self.g, other.g) && f32_eq(self.b, other.b)
+        f64_eq(self.r, other.r) && f64_eq(self.g, other.g) && f64_eq(self.b, other.b)
     }
 }
 
 impl Color {
-    pub fn new(r: f32, g: f32, b: f32) -> Color {
+    pub fn new(r: f64, g: f64, b: f64) -> Color {
         Color { r, g, b }
     }
 
@@ -145,7 +145,7 @@ impl Color {
         }
     }
 
-    fn clamp(val: f32) -> u8 {
+    fn clamp(val: f64) -> u8 {
         if val < 0.0 {
             0
         } else {

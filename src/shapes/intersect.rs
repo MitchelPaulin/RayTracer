@@ -1,12 +1,12 @@
 use crate::{
     draw::material::Material,
-    math::{ray::Ray, tuples::Tuple},
+    math::{ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
 #[derive(Clone, Copy)]
 pub struct Intersection<'a> {
     pub shape: &'a dyn Intersectable,
-    pub t: f32,
+    pub t: f64,
 }
 
 pub trait Intersectable: Sync + Send {
@@ -42,7 +42,7 @@ pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
     Pre-compute some values related to the intersection for later use
 */
 pub struct Computations<'a> {
-    pub t: f32,
+    pub t: f64,
     pub object: &'a dyn Intersectable,
     pub point: Tuple,
     pub over_point: Tuple,
@@ -56,7 +56,7 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
     let mut normalv = intersection.shape.normal_at(point);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
-    let over_point = point + normalv * 0.01;
+    let over_point = point + normalv * EPSILON;
 
     if inside {
         normalv *= -1.0;
@@ -77,7 +77,7 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
 mod test {
 
     use crate::{
-        math::{matrix::Matrix, utils::f32_eq},
+        math::{matrix::Matrix, utils::f64_eq},
         shapes::sphere::Sphere,
     };
 
@@ -127,7 +127,7 @@ mod test {
         let s = Sphere::new(None);
         let intersection = s.intersect(&r)[0];
         let comps = prepare_computations(&intersection, &r);
-        assert!(f32_eq(comps.t, intersection.t));
+        assert!(f64_eq(comps.t, intersection.t));
         assert_eq!(comps.point, Tuple::point(0.0, 0.0, -1.0));
         assert_eq!(comps.eyev, Tuple::vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, Tuple::vector(0.0, 0.0, -1.0));
@@ -140,7 +140,7 @@ mod test {
         let s = Sphere::new(None);
         let intersection = s.intersect(&r)[1];
         let comps = prepare_computations(&intersection, &r);
-        assert!(f32_eq(comps.t, intersection.t));
+        assert!(f64_eq(comps.t, intersection.t));
         assert_eq!(comps.point, Tuple::point(0.0, 0.0, 1.0));
         assert_eq!(comps.eyev, Tuple::vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, Tuple::vector(0.0, 0.0, -1.0));
@@ -153,7 +153,7 @@ mod test {
         let s = Sphere::new(Some(Matrix::translation(0.0, 0.0, 1.0)));
         let i = s.intersect(&r)[0];
         let comps = prepare_computations(&i, &r);
-        assert!(comps.over_point.z < -0.001 / 2.);
+        assert!(comps.over_point.z < -EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
     }
 }

@@ -9,18 +9,18 @@ use super::world::World;
 pub struct Camera {
     hsize: usize,
     vsize: usize,
-    field_of_view: f32,
+    field_of_view: f64,
     transform: Matrix,
-    pixel_size: f32,
-    half_width: f32,
-    half_height: f32,
+    pixel_size: f64,
+    half_width: f64,
+    half_height: f64,
 }
 
 impl Camera {
     pub fn new_with_transform(
         hsize: usize,
         vsize: usize,
-        field_of_view: f32,
+        field_of_view: f64,
         transform: Matrix,
     ) -> Camera {
         let mut c = Camera::new(hsize, vsize, field_of_view);
@@ -28,10 +28,10 @@ impl Camera {
         c
     }
 
-    pub fn new(hsize: usize, vsize: usize, field_of_view: f32) -> Camera {
+    pub fn new(hsize: usize, vsize: usize, field_of_view: f64) -> Camera {
         // the length of half of the fov
         let half_view = (field_of_view / 2.0).tan();
-        let aspect_ratio = hsize as f32 / vsize as f32;
+        let aspect_ratio = hsize as f64 / vsize as f64;
         let half_width;
         let half_height;
 
@@ -43,7 +43,7 @@ impl Camera {
             half_width = half_view * aspect_ratio;
         }
 
-        let pixel_size = (half_width * 2.0) / hsize as f32;
+        let pixel_size = (half_width * 2.0) / hsize as f64;
 
         Camera {
             hsize,
@@ -61,8 +61,8 @@ impl Camera {
     */
     fn ray_for_pixel(&self, px: usize, py: usize) -> Ray {
         // the offset from the edge of the canvas to the center of the pixel we are targeting
-        let x_offset = (px as f32 + 0.5) * self.pixel_size;
-        let y_offset = (py as f32 + 0.5) * self.pixel_size;
+        let x_offset = (px as f64 + 0.5) * self.pixel_size;
+        let y_offset = (py as f64 + 0.5) * self.pixel_size;
 
         // the coordinates of the pixel in world space
         let world_x = self.half_width - x_offset;
@@ -158,9 +158,9 @@ pub fn view_transform(from: Tuple, to: Tuple, up: Tuple) -> Matrix {
 
 #[cfg(test)]
 mod test {
-    use std::f32::consts::PI;
+    use std::f64::consts::PI;
 
-    use crate::math::utils::f32_eq;
+    use crate::math::utils::f64_eq;
 
     use super::*;
 
@@ -172,7 +172,7 @@ mod test {
 
         let expected = Ray::new(
             Tuple::point(0.0, 2.0, -5.0),
-            Tuple::vector((2.0_f32).sqrt() / 2.0, 0.0, (2.0_f32).sqrt() / -2.0),
+            Tuple::vector((2.0_f64).sqrt() / 2.0, 0.0, (2.0_f64).sqrt() / -2.0),
         );
         assert_eq!(r, expected);
     }
@@ -180,13 +180,13 @@ mod test {
     #[test]
     fn pixel_size_calculated_correctly_horizontal() {
         let c = Camera::new(200, 125, PI / 2.0);
-        assert!(f32_eq(c.pixel_size, 0.01));
+        assert!(f64_eq(c.pixel_size, 0.01));
     }
 
     #[test]
     fn pixel_size_calculated_correctly_vertical() {
         let c = Camera::new(125, 200, PI / 2.0);
-        assert!(f32_eq(c.pixel_size, 0.01));
+        assert!(f64_eq(c.pixel_size, 0.01));
     }
 
     #[test]

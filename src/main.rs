@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::{f32::consts::PI, time::Instant};
+use std::{f64::consts::PI, time::Instant};
 
 use draw::{color::Color, light::PointLight};
 use math::{matrix::Matrix, tuples::Tuple};
