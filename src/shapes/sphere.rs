@@ -3,10 +3,14 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
-use super::intersect::{Intersectable, Intersection};
+use super::intersect::{
+    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+};
 
 pub struct Sphere {
     transform: Matrix,
+    inverse_transform: Matrix,
+    inverse_transform_transpose: Matrix,
     pub material: Material,
 }
 
@@ -15,13 +19,21 @@ impl Sphere {
         match transform {
             Some(matrix) => {
                 assert_eq!(matrix.size, 4);
+                // cache some matrices so we don't need to calculate it every time
+                let inverse = matrix.inverse();
+                let mut inv_transpose = matrix.inverse();
+                inv_transpose.transpose();
                 Sphere {
                     transform: matrix,
+                    inverse_transform: inverse,
+                    inverse_transform_transpose: inv_transpose,
                     material: Material::default_material(),
                 }
             }
             None => Sphere {
                 transform: Matrix::identity(4),
+                inverse_transform: Matrix::identity(4),
+                inverse_transform_transpose: Matrix::identity(4),
                 material: Material::default_material(),
             },
         }
@@ -29,36 +41,27 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-
     fn get_material(&self) -> Material {
         self.material
     }
 
     fn normal_at(&self, world_point: Tuple) -> Tuple {
-        let mut inv_sphere_transform = self.transform.inverse();
         // convert form world space to object space
-        let object_point = &inv_sphere_transform * &world_point;
+        let object_point = self.get_inverse_transform() * &world_point;
+
         // find the normal vector in object space (i.e. a unit sphere at the origin)
+        // different for every shape
         let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
 
         // convert the normal vector in object space back to world space
-        inv_sphere_transform.transpose();
-        let mut world_normal = &inv_sphere_transform * &object_normal;
-        world_normal.w = 0.0;
-        world_normal.normalize()
+        object_space_to_world_space(self, &object_normal)
     }
 
     /*
         Determine at what points the ray intersects the sphere, if any
     */
     fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        /*
-            Rather than transforming the sphere we can transform the ray by the inverse of the sphere transform,
-            this has the same effect on the resulting intersections and allows us to assume were still
-            working with a unit sphere
-        */
-        let inv = self.transform.inverse();
-        let transformed_ray = ray.apply_transform(&inv);
+        let transformed_ray = transform_ray_to_object_space(self, ray);
 
         // cast the ray
         let sphere_to_ray = transformed_ray.origin - Tuple::point(0.0, 0.0, 0.0);
@@ -84,6 +87,18 @@ impl Intersectable for Sphere {
                 t: (-b + discriminant.sqrt()) / (2.0 * a),
             },
         ]
+    }
+
+    fn get_transform(&self) -> &Matrix {
+        &self.transform
+    }
+
+    fn get_inverse_transform(&self) -> &Matrix {
+        &self.inverse_transform
+    }
+
+    fn get_inverse_transform_transpose(&self) -> &Matrix {
+        &self.inverse_transform_transpose
     }
 }
 

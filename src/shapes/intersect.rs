@@ -1,6 +1,6 @@
 use crate::{
     draw::material::Material,
-    math::{ray::Ray, tuples::Tuple, utils::EPSILON},
+    math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
 #[derive(Clone, Copy)]
@@ -13,6 +13,9 @@ pub trait Intersectable: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Vec<Intersection>;
     fn normal_at(&self, t: Tuple) -> Tuple;
     fn get_material(&self) -> Material;
+    fn get_transform(&self) -> &Matrix;
+    fn get_inverse_transform(&self) -> &Matrix;
+    fn get_inverse_transform_transpose(&self) -> &Matrix;
 }
 
 /*
@@ -36,6 +39,22 @@ pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
     }
 
     front_intersection
+}
+
+pub fn transform_ray_to_object_space(shape: &dyn Intersectable, ray: &Ray) -> Ray {
+    /*
+        Rather than transforming the sphere we can transform the ray by the inverse of the sphere transform,
+        this has the same effect on the resulting intersections and allows us to assume were still
+        working with a unit sphere
+    */
+    let inv = shape.get_inverse_transform();
+    ray.apply_transform(inv)
+}
+
+pub fn object_space_to_world_space(shape: &dyn Intersectable, object_normal: &Tuple) -> Tuple {
+    let mut world_normal = shape.get_inverse_transform_transpose() * object_normal;
+    world_normal.w = 0.0;
+    world_normal.normalize()
 }
 
 /*
