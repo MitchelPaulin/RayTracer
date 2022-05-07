@@ -41,9 +41,6 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn get_material(&self) -> Material {
-        self.material
-    }
 
     fn normal_at(&self, world_point: Tuple) -> Tuple {
         // convert form world space to object space
@@ -87,6 +84,10 @@ impl Intersectable for Sphere {
                 t: (-b + discriminant.sqrt()) / (2.0 * a),
             },
         ]
+    }
+
+    fn get_material(&self) -> Material {
+        self.material
     }
 
     fn get_transform(&self) -> &Matrix {
