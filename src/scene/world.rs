@@ -36,7 +36,7 @@ impl World {
             color += light.lighting(
                 object,
                 comps.object.get_material(),
-                comps.point,
+                comps.over_point,
                 comps.eyev,
                 comps.normalv,
                 self.is_shadowed(light, &comps.over_point),

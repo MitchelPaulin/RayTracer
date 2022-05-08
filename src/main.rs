@@ -10,7 +10,7 @@ use scene::{
 };
 
 use crate::{
-    draw::patterns::{Solid, Stripe},
+    draw::patterns::{Checkered, Rings, Stripe},
     shapes::{plane::Plane, sphere::Sphere},
 };
 
@@ -21,25 +21,39 @@ mod shapes;
 fn main() {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
     middle.material.pattern = Box::new(Stripe::new(Color::new(1., 0.0, 0.0), Color::black()));
-    middle.material.pattern.set_transform(Matrix::scaling(0.1, 0.1, 0.1));
+    middle
+        .material
+        .pattern
+        .set_transform(Matrix::scaling(0.1, 0.1, 0.1));
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 
     let mut right = Sphere::new(Some(
         &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
     ));
-    right.material.pattern = Box::new(Solid::new(Color::new(0.5, 1.0, 0.1)));
+    right.material.pattern = Box::new(Checkered::new(
+        Color::new(0.5, 1.0, 0.1),
+        Color::new(1.0, 0.5, 0.0),
+    ));
+    right
+        .material
+        .pattern
+        .set_transform(Matrix::scaling(0.5, 0.5, 0.5));
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
 
     let mut left = Sphere::new(Some(
         &Matrix::translation(-1.5, 0.33, -0.75) * &Matrix::scaling(0.33, 0.33, 0.33),
     ));
-    left.material.pattern = Box::new(Solid::new(Color::new(1.0, 0.8, 0.1)));
+    left.material.pattern = Box::new(Rings::new(Color::new(1.0, 0.8, 0.1), Color::black()));
+    left.material
+        .pattern
+        .set_transform(&Matrix::rotation_z(-PI / 3.0) * &Matrix::scaling(0.33, 0.33, 0.33));
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
 
-    let floor = Plane::new(None);
+    let mut floor = Plane::new(None);
+    floor.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));
 
     let mut world = World::new();
     world.objects = vec![
