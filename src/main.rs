@@ -9,7 +9,10 @@ use scene::{
     world::World,
 };
 
-use crate::shapes::{sphere::Sphere, plane::Plane};
+use crate::{
+    draw::patterns::{Solid, Stripe},
+    shapes::{plane::Plane, sphere::Sphere},
+};
 
 mod draw;
 mod math;
@@ -17,25 +20,25 @@ mod scene;
 mod shapes;
 fn main() {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
-    middle.material.color = Color::new(0.1, 1.0, 0.5);
+    middle.material.pattern = Box::new(Stripe::new(Color::new(0.1, 1.0, 0.5), Color::white()));
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 
     let mut right = Sphere::new(Some(
         &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
     ));
-    right.material.color = Color::new(0.5, 1.0, 0.1);
+    right.material.pattern = Box::new(Solid::new(Color::new(0.5, 1.0, 0.1)));
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
 
     let mut left = Sphere::new(Some(
         &Matrix::translation(-1.5, 0.33, -0.75) * &Matrix::scaling(0.33, 0.33, 0.33),
     ));
-    left.material.color = Color::new(1.0, 0.8, 0.1);
+    left.material.pattern = Box::new(Solid::new(Color::new(1.0, 0.8, 0.1)));
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
 
-    let floor = Plane::new(Some(Matrix::translation(0.0, 0.5, 0.0)));
+    let floor = Plane::new(None);
 
     let mut world = World::new();
     world.objects = vec![

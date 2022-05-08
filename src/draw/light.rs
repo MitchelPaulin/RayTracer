@@ -21,14 +21,14 @@ impl PointLight {
     */
     pub fn lighting(
         &self,
-        material: Material,
+        material: &Material,
         position: Tuple,
         eyev: Tuple,
         normalv: Tuple,
         is_shadow: bool,
     ) -> Color {
         // combine the surface color with the lights color/intensity
-        let effective_color = material.color * self.intensity;
+        let effective_color = material.pattern.get_color_at(&position) * self.intensity;
 
         // find the direction to the light source
         let lightv = (self.position - position).normalize();
@@ -94,7 +94,7 @@ mod test {
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv, false);
+        let res = light.lighting(&m, position, eyev, normalv, false);
         assert!(res == Color::new(1.9, 1.9, 1.9));
     }
 
@@ -106,7 +106,7 @@ mod test {
         let eyev = Tuple::vector(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / -2.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv, false);
+        let res = light.lighting(&m, position, eyev, normalv, false);
         assert!(res == Color::new(1.0, 1.0, 1.0));
     }
 
@@ -118,7 +118,7 @@ mod test {
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 10.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv, false);
+        let res = light.lighting(&m, position, eyev, normalv, false);
         assert!(res == Color::new(0.7364, 0.7364, 0.7364));
     }
 
@@ -130,7 +130,7 @@ mod test {
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(m, position, eyev, normalv, true);
+        let res = light.lighting(&m, position, eyev, normalv, true);
         assert!(res == Color::new(0.1, 0.1, 0.1));
     }
 }

@@ -1,8 +1,10 @@
-use super::color::Color;
+use super::{
+    color::Color,
+    patterns::{Pattern, Solid},
+};
 
-#[derive(Copy, Clone)]
 pub struct Material {
-    pub color: Color,
+    pub pattern: Box<dyn Pattern>,
     pub ambient: f64,   // between 0 and 1
     pub diffuse: f64,   // between 0 and 1
     pub specular: f64,  // between 0 and 1
@@ -12,7 +14,7 @@ pub struct Material {
 impl Material {
     pub fn default_material() -> Material {
         Material {
-            color: Color::new(1.0, 1.0, 1.0),
+            pattern: Box::new(Solid::new(Color::new(1.0, 1.0, 1.0))),
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,

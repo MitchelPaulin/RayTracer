@@ -82,7 +82,7 @@ mod test {
     use std::f64::consts::PI;
 
     use crate::{
-        draw::{color::Color, material::Material},
+        draw::{color::Color, material::Material, patterns::Solid},
         math::{matrix::Matrix, tuples::Tuple, utils::f64_eq},
         scene::camera::{render, view_transform, Camera},
         shapes::{intersect::prepare_computations, sphere::Sphere},
@@ -100,12 +100,15 @@ mod test {
 
         let mut s1 = Sphere::new(None);
         s1.material = Material::default_material();
-        s1.material.color = Color::new(0.8, 1.0, 0.6);
+        s1.material.pattern = Box::new(Solid::new(Color::new(0.8, 1.0, 0.6)));
         s1.material.diffuse = 0.7;
         s1.material.specular = 0.2;
 
         let mut s2 = Sphere::new(Some(Matrix::scaling(0.5, 0.5, 0.5)));
-        s2.material = s1.material;
+        s2.material = Material::default_material();
+        s2.material.pattern = Box::new(Solid::new(Color::new(0.8, 1.0, 0.6)));
+        s2.material.diffuse = 0.7;
+        s2.material.specular = 0.2;
 
         w.objects.push(Box::new(s1));
         w.objects.push(Box::new(s2));
@@ -167,8 +170,7 @@ mod test {
 
         let mut s1 = Sphere::new(None);
         s1.material.ambient = 1.0;
-        s1.material.color = Color::new(0.1, 0.2, 0.3);
-        let c = s1.material.color;
+        s1.material.pattern = Box::new(Solid::new(Color::new(0.1, 0.2, 0.3)));
         w.objects[0] = Box::new(s1);
 
         let mut s2 = Sphere::new(None);
@@ -176,7 +178,7 @@ mod test {
         w.objects[1] = Box::new(s2);
 
         let ray = Ray::new(Tuple::point(0.0, 0.0, 0.75), Tuple::vector(0.0, 0.0, -1.0));
-        assert_eq!(w.color_at(&ray), c);
+        assert_eq!(w.color_at(&ray), Color::new(0.1, 0.2, 0.3));
     }
 
     #[test]

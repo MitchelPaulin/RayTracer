@@ -12,7 +12,7 @@ pub struct Intersection<'a> {
 pub trait Intersectable: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Vec<Intersection>;
     fn normal_at(&self, t: Tuple) -> Tuple;
-    fn get_material(&self) -> Material;
+    fn get_material(&self) -> &Material;
     fn get_transform(&self) -> &Matrix;
     fn get_inverse_transform(&self) -> &Matrix;
     fn get_inverse_transform_transpose(&self) -> &Matrix;

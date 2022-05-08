@@ -59,8 +59,8 @@ impl Intersectable for Plane {
         Tuple::vector(0.0, 1.0, 0.0)
     }
 
-    fn get_material(&self) -> Material {
-        self.material
+    fn get_material(&self) -> &Material {
+        &self.material
     }
 
     fn get_transform(&self) -> &Matrix {
