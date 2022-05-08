@@ -20,7 +20,8 @@ mod scene;
 mod shapes;
 fn main() {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
-    middle.material.pattern = Box::new(Stripe::new(Color::new(0.1, 1.0, 0.5), Color::white()));
+    middle.material.pattern = Box::new(Stripe::new(Color::new(1., 0.0, 0.0), Color::black()));
+    middle.material.pattern.set_transform(Matrix::scaling(0.1, 0.1, 0.1));
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 

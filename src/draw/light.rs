@@ -1,4 +1,4 @@
-use crate::math::tuples::Tuple;
+use crate::{math::tuples::Tuple, shapes::intersect::Intersectable};
 
 use super::{color::Color, material::Material};
 
@@ -21,6 +21,7 @@ impl PointLight {
     */
     pub fn lighting(
         &self,
+        object: &dyn Intersectable,
         material: &Material,
         position: Tuple,
         eyev: Tuple,
@@ -28,7 +29,10 @@ impl PointLight {
         is_shadow: bool,
     ) -> Color {
         // combine the surface color with the lights color/intensity
-        let effective_color = material.pattern.get_color_at(&position) * self.intensity;
+        // first convert to pattern space so we can get the color as it falls on the pattern
+        let object_point = object.get_inverse_transform() * &position;
+        let pattern_point = material.pattern.inverse_transform() * &object_point;
+        let effective_color = material.pattern.color_at(&pattern_point) * self.intensity;
 
         // find the direction to the light source
         let lightv = (self.position - position).normalize();
@@ -84,53 +88,59 @@ impl PointLight {
 #[cfg(test)]
 mod test {
 
+    use crate::shapes::sphere::Sphere;
+
     use super::*;
 
     #[test]
     fn eye_between_light_and_surface() {
+        let dummy_sphere = Sphere::new(None);
         let position = Tuple::point(0.0, 0.0, 0.0);
         let m = Material::default_material();
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(&m, position, eyev, normalv, false);
+        let res = light.lighting(&dummy_sphere, &m, position, eyev, normalv, false);
         assert!(res == Color::new(1.9, 1.9, 1.9));
     }
 
     #[test]
     fn eye_between_light_and_surface_offset_45() {
+        let dummy_sphere = Sphere::new(None);
         let position = Tuple::point(0.0, 0.0, 0.0);
         let m = Material::default_material();
 
         let eyev = Tuple::vector(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / -2.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(&m, position, eyev, normalv, false);
+        let res = light.lighting(&dummy_sphere, &m, position, eyev, normalv, false);
         assert!(res == Color::new(1.0, 1.0, 1.0));
     }
 
     #[test]
     fn eye_opposite_surface_light_offset_45() {
+        let dummy_sphere = Sphere::new(None);
         let position = Tuple::point(0.0, 0.0, 0.0);
         let m = Material::default_material();
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 10.0, -10.0));
-        let res = light.lighting(&m, position, eyev, normalv, false);
+        let res = light.lighting(&dummy_sphere, &m, position, eyev, normalv, false);
         assert!(res == Color::new(0.7364, 0.7364, 0.7364));
     }
 
     #[test]
     fn lighting_with_shadow() {
+        let dummy_sphere = Sphere::new(None);
         let position = Tuple::point(0.0, 0.0, 0.0);
         let m = Material::default_material();
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(0.0, 0.0, -10.0));
-        let res = light.lighting(&m, position, eyev, normalv, true);
+        let res = light.lighting(&dummy_sphere, &m, position, eyev, normalv, true);
         assert!(res == Color::new(0.1, 0.1, 0.1));
     }
 }

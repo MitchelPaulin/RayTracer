@@ -29,11 +29,12 @@ impl World {
         intersections
     }
 
-    pub fn shade_hit(&self, comps: &Computations) -> Color {
+    pub fn shade_hit(&self, object: &dyn Intersectable, comps: &Computations) -> Color {
         let mut color = Color::black();
 
         for light in &self.light_sources {
             color += light.lighting(
+                object,
                 comps.object.get_material(),
                 comps.point,
                 comps.eyev,
@@ -50,7 +51,7 @@ impl World {
         match hit(intersections) {
             Some(hit) => {
                 let comps = prepare_computations(&hit, ray);
-                self.shade_hit(&comps)
+                self.shade_hit(hit.shape, &comps)
             }
             None => Color::black(),
         }
@@ -142,11 +143,12 @@ mod test {
 
     #[test]
     fn shading_an_intersection() {
+        let dummy_sphere = Sphere::new(None);
         let w = get_populated_world();
         let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let intersections = w.intersect_world(&ray);
         let comps = prepare_computations(&intersections[0], &ray);
-        let c = w.shade_hit(&comps);
+        let c = w.shade_hit(&dummy_sphere, &comps);
         assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
     }
 
