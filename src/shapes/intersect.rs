@@ -67,6 +67,7 @@ pub struct Computations<'a> {
     pub over_point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
+    pub reflectv: Tuple,
     pub inside: bool, // if the ray was cast from inside the object
 }
 
@@ -81,6 +82,8 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
         normalv *= -1.0;
     }
 
+    let reflectv = ray.direction.reflect(&normalv);
+
     Computations {
         t: intersection.t,
         object: intersection.shape,
@@ -88,6 +91,7 @@ pub fn prepare_computations<'a>(intersection: &'a Intersection, ray: &'a Ray) ->
         over_point,
         eyev,
         normalv,
+        reflectv,
         inside,
     }
 }
@@ -97,7 +101,7 @@ mod test {
 
     use crate::{
         math::{matrix::Matrix, utils::f64_eq},
-        shapes::sphere::Sphere,
+        shapes::{plane::Plane, sphere::Sphere},
     };
 
     use super::*;
@@ -174,5 +178,21 @@ mod test {
         let comps = prepare_computations(&i, &r);
         assert!(comps.over_point.z < -EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
+    }
+
+    #[test]
+    fn pre_compute_reflect_vector() {
+        let s = Plane::new(None);
+        let r = Ray::new(
+            Tuple::point(0.0, 1.0, -1.0),
+            Tuple::vector(0.0, (2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0),
+        );
+        let intersections = s.intersect(&r);
+        assert!(intersections.len() == 1);
+        let comps = prepare_computations(&intersections[0], &r);
+        assert_eq!(
+            comps.reflectv,
+            Tuple::vector(0.0, (2.0_f64).sqrt() / 2.0, (2.0_f64).sqrt() / 2.0)
+        );
     }
 }

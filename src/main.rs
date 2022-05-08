@@ -10,7 +10,7 @@ use scene::{
 };
 
 use crate::{
-    draw::patterns::{Checkered, Rings, Stripe},
+    draw::patterns::{Checkered, Rings, Solid},
     shapes::{plane::Plane, sphere::Sphere},
 };
 
@@ -20,13 +20,14 @@ mod scene;
 mod shapes;
 fn main() {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
-    middle.material.pattern = Box::new(Stripe::new(Color::new(1., 0.0, 0.0), Color::black()));
+    middle.material.pattern = Box::new(Solid::new(Color::white()));
     middle
         .material
         .pattern
         .set_transform(Matrix::scaling(0.1, 0.1, 0.1));
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
+    middle.material.reflective = 0.3;
 
     let mut right = Sphere::new(Some(
         &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
@@ -54,6 +55,7 @@ fn main() {
 
     let mut floor = Plane::new(None);
     floor.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));
+    floor.material.reflective = 0.1;
 
     let mut world = World::new();
     world.objects = vec![

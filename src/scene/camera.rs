@@ -123,7 +123,7 @@ fn render_thread(
     for y in (vsize_per_thread * thread_number)..(vsize_per_thread * (thread_number + 1)) {
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
-            let color = world.color_at(&ray);
+            let color = world.color_at(&ray, 5);
             image.write_pixel(x, y - vsize_per_thread * thread_number, color);
         }
     }
