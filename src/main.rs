@@ -33,8 +33,8 @@ fn main() {
         &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
     ));
     right.material.pattern = Box::new(Checkered::new(
-        Color::new(0.5, 1.0, 0.1),
-        Color::new(1.0, 0.5, 0.0),
+        Color::new(1., 1., 1.),
+        Color::new(0.199, 0.355, 0.585),
     ));
     right
         .material
@@ -42,6 +42,7 @@ fn main() {
         .set_transform(Matrix::scaling(0.5, 0.5, 0.5));
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
+    right.material.reflective = 0.1;
 
     let mut left = Sphere::new(Some(
         &Matrix::translation(-1.5, 0.33, -0.75) * &Matrix::scaling(0.33, 0.33, 0.33),
@@ -52,10 +53,18 @@ fn main() {
         .set_transform(&Matrix::rotation_z(-PI / 3.0) * &Matrix::scaling(0.33, 0.33, 0.33));
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
+    left.material.reflective = 0.1;
 
     let mut floor = Plane::new(None);
     floor.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));
     floor.material.reflective = 0.1;
+
+    let mut ceil = Plane::new(Some(Matrix::translation(0., 100., 0.)));
+    ceil.material.pattern = Box::new(Solid::new(Color::new(0., 0.707, 0.882)));
+    ceil.material.specular = 1.;
+    ceil.material.diffuse = 1.;
+    ceil.material.ambient = 0.8;
+    ceil.material.reflective = 0.9;
 
     let mut world = World::new();
     world.objects = vec![
@@ -63,6 +72,7 @@ fn main() {
         Box::new(middle),
         Box::new(right),
         Box::new(floor),
+        Box::new(ceil)
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
