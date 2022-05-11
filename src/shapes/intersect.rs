@@ -105,18 +105,19 @@ pub fn prepare_computations<'a>(
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
     let over_point = point + normalv * EPSILON;
-    let under_point = point - normalv * EPSILON;
 
     if inside {
         normalv *= -1.0;
     }
 
+    let under_point = point - normalv * EPSILON;
+
     let reflectv = ray.direction.reflect(&normalv);
 
     // record what objects have been entered but not yet exited
     let mut containers: Vec<&dyn Intersectable> = vec![];
-    let mut n1 = 0.0;
-    let mut n2 = 0.0;
+    let mut n1 = 1.0;
+    let mut n2 = 1.0;
     for i in intersections {
         // we have found the hits entrance into the refractive object, the index must be the last container we saw
         // if there are no more objects then we have nothing to collide with, set index to 1
@@ -138,7 +139,7 @@ pub fn prepare_computations<'a>(
             }
             None => containers.push(i.shape),
         };
-        
+
         // ths hits exit from the refractive object
         if hits_equal(hit, i) {
             n2 = match containers.last() {

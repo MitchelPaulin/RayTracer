@@ -52,7 +52,9 @@ impl World {
         let reflected = self.reflected_color(comps, depth);
         let refracted = self.refracted_color(comps, depth);
 
-        if comps.object.get_material().reflective > 0. && comps.object.get_material().transparency > 0. {
+        if comps.object.get_material().reflective > 0.
+            && comps.object.get_material().transparency > 0.
+        {
             let reflectance = schlick(&comps);
             return surface + reflected * reflectance + refracted * (1. - reflectance);
         }
