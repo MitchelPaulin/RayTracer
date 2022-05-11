@@ -122,7 +122,7 @@ impl Intersectable for Sphere {
 
 #[cfg(test)]
 mod test {
-    use std::f64::consts::PI;
+    use std::f64::consts::{FRAC_1_SQRT_2, PI};
 
     use crate::math::tuples::Tuple;
 
@@ -220,8 +220,8 @@ mod test {
     #[test]
     fn normal_on_translated_sphere() {
         let s = Sphere::new(Some(Matrix::translation(0.0, 1.0, 0.0)));
-        let n = s.normal_at(Tuple::point(0.0, 1.70711, -0.70711));
-        assert!(n == Tuple::vector(0.0, 0.70711, -0.70711));
+        let n = s.normal_at(Tuple::point(0.0, 1.70711, -FRAC_1_SQRT_2));
+        assert!(n == Tuple::vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
     }
 
     #[test]

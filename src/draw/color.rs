@@ -213,7 +213,7 @@ mod test {
         assert!(res == c);
 
         c /= 2.0;
-        c = c / 0.5;
+        c /= 0.5;
         assert!(res == c);
     }
 

@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 string-builder = "0.2.0"
-rand = "0.8"

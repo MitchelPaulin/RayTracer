@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-// atomic counter to ensure each shape in the scene will have a unique id 
+// atomic counter to ensure each shape in the scene will have a unique id
 pub static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Clone, Copy)]
@@ -42,7 +42,7 @@ impl PartialEq for dyn Intersectable {
     i.e. the one closet to the camera, a negative value indicates the intersection
     happened behind the camera and hence should not be shown
 */
-pub fn hit<'a>(intersections: &'a Vec<Intersection>) -> Option<Intersection<'a>> {
+pub fn hit<'a>(intersections: &[Intersection<'a>]) -> Option<Intersection<'a>> {
     if intersections.is_empty() {
         return None;
     }
@@ -97,7 +97,7 @@ fn hits_equal(a: &Intersection, b: &Intersection) -> bool {
 pub fn prepare_computations<'a>(
     intersection: &'a Intersection,
     ray: &'a Ray,
-    intersections: &'a Vec<Intersection<'a>>,
+    intersections: &Vec<Intersection>,
 ) -> Computations<'a> {
     let point = ray.position(intersection.t);
     let mut normalv = intersection.shape.normal_at(point);
@@ -115,7 +115,7 @@ pub fn prepare_computations<'a>(
     let mut n1 = 1.0;
     let mut n2 = 1.0;
     for i in intersections {
-        if hits_equal(&intersection, i) {
+        if hits_equal(intersection, i) {
             n1 = match containers.last() {
                 Some(container) => container.get_material().refractive_index,
                 None => 1.0,
@@ -128,7 +128,6 @@ pub fn prepare_computations<'a>(
         {
             Some(index) => {
                 containers.remove(index);
-                ()
             }
             None => containers.push(i.shape),
         };
