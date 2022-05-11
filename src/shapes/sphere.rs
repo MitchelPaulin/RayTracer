@@ -1,7 +1,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    draw::material::Material,
+    draw::{material::Material, patterns::Solid, color::Color},
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
@@ -50,6 +50,7 @@ impl Sphere {
         let mut gs = Sphere::new(transform);
         gs.material.transparency = 1.0;
         gs.material.refractive_index = 1.5;
+        gs.material.pattern = Box::new(Solid::new(Color::black()));
         gs
     }
 }

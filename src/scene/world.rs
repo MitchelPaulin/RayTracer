@@ -50,8 +50,14 @@ impl World {
         }
 
         let reflected = self.reflected_color(comps, depth);
+        let refracted = self.refracted_color(comps, depth);
 
-        surface + reflected
+        if comps.object.get_material().reflective > 0. && comps.object.get_material().transparency > 0. {
+            let reflectance = schlick(&comps);
+            return surface + reflected * reflectance + refracted * (1. - reflectance);
+        }
+
+        surface + reflected + refracted
     }
 
     pub fn color_at(&self, ray: &Ray, depth: usize) -> Color {
@@ -76,6 +82,33 @@ impl World {
         }
     }
 
+    pub fn refracted_color(&self, comps: &Computations, depth: usize) -> Color {
+        if f64_eq(comps.object.get_material().transparency, 0.0) || depth == 0 {
+            Color::black()
+        } else {
+            // apply Snell's law //
+            let n_ratio = comps.n1 / comps.n2;
+            // the dot product is the same as the cosine of the angle between the points
+            let cos_i = comps.eyev.dot(&comps.normalv);
+            // use a trig identity to solve for angle of refraction
+            let sin2_t = n_ratio.powi(2) * (1. - cos_i.powi(2));
+
+            // total internal refraction
+            if sin2_t > 1. {
+                return Color::black();
+            }
+
+            // general refraction case
+
+            // find cos(theta_t) using another identity
+            let cos_t = (1. - sin2_t).sqrt();
+            let direction = (comps.normalv * (n_ratio * cos_i - cos_t)) - (comps.eyev * n_ratio);
+            let refract_ray = Ray::new(comps.under_point, direction);
+            // find the color of the refracted ray accounting for transparency
+            self.color_at(&refract_ray, depth - 1) * comps.object.get_material().transparency
+        }
+    }
+
     fn is_shadowed(&self, light_source: &PointLight, point: &Tuple) -> bool {
         assert!(point.is_point());
 
@@ -95,6 +128,22 @@ impl World {
             None => false,
         }
     }
+}
+
+fn schlick(comps: &Computations) -> f64 {
+    let mut cos = comps.eyev.dot(&comps.normalv);
+    if comps.n1 > comps.n2 {
+        let n = comps.n1 / comps.n2;
+        let sin2_t = n * n * (1. - cos * cos);
+        if sin2_t > 1. {
+            return 1.;
+        }
+
+        cos = (1. - sin2_t).sqrt();
+    }
+
+    let r_0 = ((comps.n1 - comps.n2) / (comps.n1 + comps.n2)).powi(2);
+    r_0 + (1. - r_0) * (1. - cos).powi(5)
 }
 
 #[cfg(test)]
@@ -284,5 +333,92 @@ mod test {
             w.shade_hit(&comps, 5),
             Color::new(0.8767572837020907, 0.924340334075874, 0.8291742333283075)
         );
+    }
+
+    #[test]
+    fn refracted_color_opaque_surface() {
+        let w = populated_world();
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0., 0., 1.));
+        let xs = w.objects.first().unwrap().intersect(&r);
+        let comps = prepare_computations(&xs[0], &r, &xs);
+        let c = w.refracted_color(&comps, 5);
+        assert_eq!(c, Color::black());
+    }
+
+    #[test]
+    fn refracted_color_total_internal_refraction() {
+        let mut w = populated_world();
+        let r = Ray::new(
+            Tuple::point(0.0, 0.0, (2.0_f64).sqrt() / 2.),
+            Tuple::vector(0., 1., 0.),
+        );
+
+        let mut s1 = Sphere::new(None);
+        s1.material.transparency = 1.;
+        s1.material.refractive_index = 1.5;
+        w.objects[0] = Box::new(s1);
+
+        let xs = w.objects[0].intersect(&r);
+        let comps = prepare_computations(&xs[1], &r, &xs);
+        let c = w.refracted_color(&comps, 5);
+        assert_eq!(c, Color::black());
+    }
+
+    #[test]
+    fn shade_hit_transparent() {
+        let mut w = populated_world();
+        let mut floor = Plane::new(Some(Matrix::translation(0., -1., 0.)));
+        floor.material.transparency = 0.5;
+        floor.material.refractive_index = 1.5;
+        w.objects.push(Box::new(floor));
+
+        let mut ball = Sphere::new(Some(Matrix::translation(0., -3.5, -0.5)));
+        ball.material.pattern = Box::new(Solid::new(Color::new(1., 0., 0.)));
+        ball.material.ambient = 0.5;
+        w.objects.push(Box::new(ball));
+
+        let r = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., (2.0_f64).sqrt() / -2., (2.0_f64).sqrt() / 2.),
+        );
+
+        let xs = w.intersect_world(&r);
+        let comps = prepare_computations(&xs[0], &r, &xs);
+        let color = w.shade_hit(&comps, 5);
+        assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
+    }
+
+    #[test]
+    fn schlick_test() {
+        let s = Sphere::new_glass_sphere(None);
+        let r = Ray::new(Tuple::point(0., 0.99, -2.0), Tuple::vector(0., 0., 1.));
+        let xs = s.intersect(&r);
+        let comps = prepare_computations(&xs[0], &r, &xs);
+        assert!(f64_eq(schlick(&comps), 0.4888143830387389));
+    }
+
+    #[test]
+    fn shade_hit_with_reflective_transparent_material() {
+        let mut w = populated_world();
+        let mut floor = Plane::new(Some(Matrix::translation(0., -1., 0.)));
+        floor.material.reflective = 0.5;
+        floor.material.transparency = 0.5;
+        floor.material.refractive_index = 1.5;
+        w.objects.push(Box::new(floor));
+
+        let mut ball = Sphere::new(Some(Matrix::translation(0., -3.5, -0.5)));
+        ball.material.pattern = Box::new(Solid::new(Color::new(1., 0., 0.)));
+        ball.material.ambient = 0.5;
+        w.objects.push(Box::new(ball));
+
+        let r = Ray::new(
+            Tuple::point(0., 0., -3.),
+            Tuple::vector(0., (2.0_f64).sqrt() / -2., (2.0_f64).sqrt() / 2.),
+        );
+
+        let xs = w.intersect_world(&r);
+        let comps = prepare_computations(&xs[0], &r, &xs);
+        let color = w.shade_hit(&comps, 5);
+        assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
     }
 }

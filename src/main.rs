@@ -10,7 +10,7 @@ use scene::{
 };
 
 use crate::{
-    draw::patterns::{Checkered, Rings, Solid},
+    draw::patterns::{Checkered, Solid},
     shapes::{plane::Plane, sphere::Sphere},
 };
 
@@ -19,61 +19,30 @@ mod math;
 mod scene;
 mod shapes;
 fn main() {
-    let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
-    middle.material.pattern = Box::new(Solid::new(Color::white()));
-    middle
-        .material
-        .pattern
-        .set_transform(Matrix::scaling(0.1, 0.1, 0.1));
-    middle.material.diffuse = 0.7;
-    middle.material.specular = 0.3;
-    middle.material.reflective = 0.4;
-
-    let mut right = Sphere::new(Some(
-        &Matrix::translation(1.5, 0.5, -0.5)
-            * &(&Matrix::scaling(0.5, 0.5, 0.5) * &Matrix::rotation_z(-PI / 3.0)),
-    ));
-    right.material.pattern = Box::new(Checkered::new(
-        Color::new(0.461, 0.586, 0.336),
-        Color::new(0.93, 0.93, 0.82),
-    ));
-    right
-        .material
-        .pattern
-        .set_transform(Matrix::scaling(0.5, 0.5, 0.5));
-    right.material.diffuse = 0.7;
-    right.material.specular = 0.3;
-    right.material.reflective = 0.1;
-
-    let mut left = Sphere::new(Some(
-        &Matrix::translation(-1.5, 0.33, -0.75) * &Matrix::scaling(0.33, 0.33, 0.33),
-    ));
-    left.material.pattern = Box::new(Rings::new(Color::new(1.0, 0.8, 0.1), Color::black()));
-    left.material
-        .pattern
-        .set_transform(&Matrix::rotation_z(-PI / 3.0) * &Matrix::scaling(0.33, 0.33, 0.33));
-    left.material.diffuse = 0.7;
-    left.material.specular = 0.3;
-    left.material.reflective = 0.1;
-
-    let mut floor = Plane::new(None);
+    let mut floor = Plane::new(Some(Matrix::translation(0., -10., 0.)));
     floor.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));
-    floor.material.reflective = 0.1;
 
-    let mut ceil = Plane::new(Some(Matrix::translation(0., 100., 0.)));
-    ceil.material.pattern = Box::new(Solid::new(Color::new(0., 0.707, 0.882)));
-    ceil.material.specular = 1.;
-    ceil.material.diffuse = 1.;
-    ceil.material.ambient = 0.8;
-    ceil.material.reflective = 0.9;
+    let mut g_sphere = Sphere::new(None);
+    g_sphere.material.pattern = Box::new(Solid::new(Color::new(0., 0., 0.0)));
+    g_sphere.material.diffuse = 0.1;
+    g_sphere.material.shininess = 300.;
+    g_sphere.material.reflective = 1.0;
+    g_sphere.material.transparency = 0.9;
+    g_sphere.material.refractive_index = 1.52;
+
+    let mut a_sphere = Sphere::new(Some(Matrix::scaling(0.5, 0.5, 0.5)));
+    a_sphere.material.diffuse = 0.1;
+    a_sphere.material.shininess = 300.;
+    a_sphere.material.reflective = 1.;
+    a_sphere.material.transparency = 0.9;
+    a_sphere.material.refractive_index = 1.00029;
+    a_sphere.material.pattern = Box::new(Solid::new(Color::new(0.0, 0.0, 0.0)));
 
     let mut world = World::new();
     world.objects = vec![
-        Box::new(left),
-        Box::new(middle),
-        Box::new(right),
         Box::new(floor),
-        Box::new(ceil),
+        Box::new(g_sphere),
+        Box::new(a_sphere)
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
@@ -81,13 +50,13 @@ fn main() {
     )];
 
     let camera = Camera::new_with_transform(
-        1000,
-        500,
+        512,
+        512,
         PI / 3.0,
         view_transform(
-            Tuple::point(0.0, 1.5, -5.0),
-            Tuple::point(0.0, 1.0, 0.0),
-            Tuple::vector(0.0, 1.0, 0.0),
+            Tuple::point(0.0, 2.5, 0.0),
+            Tuple::point(0.0, 0.0, 0.0),
+            Tuple::vector(1.0, 0.0, 0.0),
         ),
     );
 

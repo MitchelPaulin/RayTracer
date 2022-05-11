@@ -81,7 +81,8 @@ pub struct Computations<'a> {
     pub t: f64,
     pub object: &'a dyn Intersectable,
     pub point: Tuple,
-    pub over_point: Tuple,
+    pub over_point: Tuple, // a point that lies just above the intersected surface
+    pub under_point: Tuple, // a point that lies just below the intersected surface
     pub eyev: Tuple,
     pub normalv: Tuple,
     pub reflectv: Tuple,
@@ -95,15 +96,16 @@ fn hits_equal(a: &Intersection, b: &Intersection) -> bool {
 }
 
 pub fn prepare_computations<'a>(
-    intersection: &'a Intersection,
+    hit: &'a Intersection,
     ray: &'a Ray,
     intersections: &Vec<Intersection>,
 ) -> Computations<'a> {
-    let point = ray.position(intersection.t);
-    let mut normalv = intersection.shape.normal_at(point);
+    let point = ray.position(hit.t);
+    let mut normalv = hit.shape.normal_at(point);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
     let over_point = point + normalv * EPSILON;
+    let under_point = point - normalv * EPSILON;
 
     if inside {
         normalv *= -1.0;
@@ -111,17 +113,22 @@ pub fn prepare_computations<'a>(
 
     let reflectv = ray.direction.reflect(&normalv);
 
+    // record what objects have been entered but not yet exited
     let mut containers: Vec<&dyn Intersectable> = vec![];
-    let mut n1 = 1.0;
-    let mut n2 = 1.0;
+    let mut n1 = 0.0;
+    let mut n2 = 0.0;
     for i in intersections {
-        if hits_equal(intersection, i) {
+        // we have found the hits entrance into the refractive object, the index must be the last container we saw
+        // if there are no more objects then we have nothing to collide with, set index to 1
+        if hits_equal(hit, i) {
             n1 = match containers.last() {
                 Some(container) => container.get_material().refractive_index,
                 None => 1.0,
             }
         }
 
+        // if the object is already in our list, then the intersection we just processed must be leaving the object
+        // otherwise we are entering the object and need to keep it in the list
         match containers
             .iter()
             .position(|x| x.get_id() == i.shape.get_id())
@@ -131,8 +138,9 @@ pub fn prepare_computations<'a>(
             }
             None => containers.push(i.shape),
         };
-
-        if hits_equal(intersection, i) {
+        
+        // ths hits exit from the refractive object
+        if hits_equal(hit, i) {
             n2 = match containers.last() {
                 Some(container) => container.get_material().refractive_index,
                 None => 1.0,
@@ -142,10 +150,11 @@ pub fn prepare_computations<'a>(
     }
 
     Computations {
-        t: intersection.t,
-        object: intersection.shape,
+        t: hit.t,
+        object: hit.shape,
         point,
         over_point,
+        under_point,
         eyev,
         normalv,
         reflectv,
@@ -298,5 +307,15 @@ mod test {
         let s2 = Sphere::new(None);
         assert_ne!(s1.get_id(), s2.get_id());
         assert_eq!(s1.get_id(), s1.get_id());
+    }
+
+    #[test]
+    fn under_point_is_offset_below_surface() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let s = Sphere::new_glass_sphere(Some(Matrix::translation(0., 0., 1.)));
+        let xs = s.intersect(&r);
+        let comps = prepare_computations(&xs[0], &r, &xs);
+        assert!(comps.under_point.z > EPSILON / 2.);
+        assert!(comps.point.z < comps.under_point.z);
     }
 }
