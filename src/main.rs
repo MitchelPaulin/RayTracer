@@ -27,14 +27,15 @@ fn main() {
         .set_transform(Matrix::scaling(0.1, 0.1, 0.1));
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
-    middle.material.reflective = 0.3;
+    middle.material.reflective = 0.4;
 
     let mut right = Sphere::new(Some(
-        &Matrix::translation(1.5, 0.5, -0.5) * &Matrix::scaling(0.5, 0.5, 0.5),
+        &Matrix::translation(1.5, 0.5, -0.5)
+            * &(&Matrix::scaling(0.5, 0.5, 0.5) * &Matrix::rotation_z(-PI / 3.0)),
     ));
     right.material.pattern = Box::new(Checkered::new(
-        Color::new(1., 1., 1.),
-        Color::new(0.199, 0.355, 0.585),
+        Color::new(0.461, 0.586, 0.336),
+        Color::new(0.93, 0.93, 0.82),
     ));
     right
         .material
@@ -72,7 +73,7 @@ fn main() {
         Box::new(middle),
         Box::new(right),
         Box::new(floor),
-        Box::new(ceil)
+        Box::new(ceil),
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),

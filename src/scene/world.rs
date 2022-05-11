@@ -56,9 +56,9 @@ impl World {
 
     pub fn color_at(&self, ray: &Ray, depth: usize) -> Color {
         let intersections = self.intersect_world(ray);
-        match hit(intersections) {
+        match hit(&intersections) {
             Some(hit) => {
-                let comps = prepare_computations(&hit, ray);
+                let comps = prepare_computations(&hit, ray, &intersections);
                 self.shade_hit(&comps, depth)
             }
             None => Color::black(),
@@ -87,7 +87,7 @@ impl World {
         // cast a ray from that point towards the source of light
         let r = Ray::new(*point, direction);
         let intersections = self.intersect_world(&r);
-        let h = hit(intersections);
+        let h = hit(&intersections);
 
         // if this ray collided with an object on it way to the light, return true otherwise false
         match h {
@@ -165,7 +165,7 @@ mod test {
         let w = populated_world();
         let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let intersections = w.intersect_world(&ray);
-        let comps = prepare_computations(&intersections[0], &ray);
+        let comps = prepare_computations(&intersections[0], &ray, &intersections);
         let c = w.shade_hit(&comps, 5);
         assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
     }
@@ -240,8 +240,8 @@ mod test {
         s2.material.specular = 0.2;
         s2.material.ambient = 1.0;
         w.objects[1] = Box::new(s2);
-        let i = w.objects[1].intersect(&r)[0];
-        let comps = prepare_computations(&i, &r);
+        let intersections = w.objects[1].intersect(&r);
+        let comps = prepare_computations(&intersections[0], &r, &intersections);
         let color = w.reflected_color(&comps, 5);
         assert_eq!(color, Color::black());
     }
@@ -256,8 +256,8 @@ mod test {
             Tuple::point(0.0, 0.0, -3.0),
             Tuple::vector(0.0, (2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0),
         );
-        let i = w.objects.last().unwrap().intersect(&r)[0];
-        let comps = prepare_computations(&i, &r);
+        let intersections = w.objects.last().unwrap().intersect(&r);
+        let comps = prepare_computations(&intersections[0], &r, &intersections);
         assert_eq!(
             w.reflected_color(&comps, 5),
             Color::new(
@@ -278,8 +278,8 @@ mod test {
             Tuple::point(0.0, 0.0, -3.0),
             Tuple::vector(0.0, (2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0),
         );
-        let i = w.objects.last().unwrap().intersect(&r)[0];
-        let comps = prepare_computations(&i, &r);
+        let intersections = w.objects.last().unwrap().intersect(&r);
+        let comps = prepare_computations(&intersections[0], &r, &intersections);
         assert_eq!(
             w.shade_hit(&comps, 5),
             Color::new(0.8767572837020907, 0.924340334075874, 0.8291742333283075)

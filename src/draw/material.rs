@@ -5,11 +5,13 @@ use super::{
 
 pub struct Material {
     pub pattern: Box<dyn Pattern>,
-    pub ambient: f64,    // between 0 and 1
-    pub diffuse: f64,    // between 0 and 1
-    pub specular: f64,   // between 0 and 1
-    pub shininess: f64,  // between 10 and 200 (large to small)
-    pub reflective: f64, // between 0 and 1
+    pub ambient: f64,      // between 0 and 1
+    pub diffuse: f64,      // between 0 and 1
+    pub specular: f64,     // between 0 and 1
+    pub shininess: f64,    // between 10 and 200 (large to small)
+    pub reflective: f64,   // between 0 and 1
+    pub transparency: f64, // between 0 and 1
+    pub refractive_index: f64,
 }
 
 impl Material {
@@ -21,6 +23,8 @@ impl Material {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,     // opaque
+            refractive_index: 1.0, // vacuum
         }
     }
 }

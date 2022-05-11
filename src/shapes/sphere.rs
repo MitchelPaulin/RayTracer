@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use crate::{
     draw::material::Material,
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
@@ -5,9 +7,11 @@ use crate::{
 
 use super::intersect::{
     object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+    OBJECT_COUNTER,
 };
 
 pub struct Sphere {
+    id: usize,
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
@@ -16,6 +20,7 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(transform: Option<Matrix>) -> Sphere {
+        let id = OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst);
         match transform {
             Some(matrix) => {
                 assert_eq!(matrix.size, 4);
@@ -28,6 +33,7 @@ impl Sphere {
                     inverse_transform: inverse,
                     inverse_transform_transpose: inv_transpose,
                     material: Material::default_material(),
+                    id,
                 }
             }
             None => Sphere {
@@ -35,8 +41,16 @@ impl Sphere {
                 inverse_transform: Matrix::identity(4),
                 inverse_transform_transpose: Matrix::identity(4),
                 material: Material::default_material(),
+                id,
             },
         }
+    }
+
+    pub fn new_glass_sphere(transform: Option<Matrix>) -> Sphere {
+        let mut gs = Sphere::new(transform);
+        gs.material.transparency = 1.0;
+        gs.material.refractive_index = 1.5;
+        gs
     }
 }
 
@@ -99,6 +113,10 @@ impl Intersectable for Sphere {
 
     fn get_inverse_transform_transpose(&self) -> &Matrix {
         &self.inverse_transform_transpose
+    }
+
+    fn get_id(&self) -> usize {
+        self.id
     }
 }
 

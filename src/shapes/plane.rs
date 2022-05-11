@@ -1,11 +1,16 @@
+use std::sync::atomic::Ordering;
+
 use crate::{
     draw::material::Material,
     math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
-use super::intersect::{transform_ray_to_object_space, Intersectable, Intersection};
+use super::intersect::{
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
+};
 
 pub struct Plane {
+    id: usize,
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
@@ -14,6 +19,7 @@ pub struct Plane {
 
 impl Plane {
     pub fn new(transform: Option<Matrix>) -> Plane {
+        let id = OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst);
         match transform {
             Some(matrix) => {
                 assert_eq!(matrix.size, 4);
@@ -22,6 +28,7 @@ impl Plane {
                 let mut inv_transpose = matrix.inverse();
                 inv_transpose.transpose();
                 Plane {
+                    id,
                     transform: matrix,
                     inverse_transform: inverse,
                     inverse_transform_transpose: inv_transpose,
@@ -29,6 +36,7 @@ impl Plane {
                 }
             }
             None => Plane {
+                id,
                 transform: Matrix::identity(4),
                 inverse_transform: Matrix::identity(4),
                 inverse_transform_transpose: Matrix::identity(4),
@@ -73,6 +81,10 @@ impl Intersectable for Plane {
 
     fn get_inverse_transform_transpose(&self) -> &Matrix {
         &self.inverse_transform_transpose
+    }
+
+    fn get_id(&self) -> usize {
+        self.id
     }
 }
 
