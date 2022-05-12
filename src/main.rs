@@ -11,7 +11,7 @@ use scene::{
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
-    shapes::{plane::Plane, sphere::Sphere},
+    shapes::{cube::Cube, plane::Plane, sphere::Sphere},
 };
 
 mod draw;
@@ -27,12 +27,16 @@ fn main() {
     middle.material.shininess = 300.;
     middle.material.ambient = 0.1;
     middle.material.diffuse = 0.1;
-    middle.material.refractive_index = 1.333;
+    middle.material.refractive_index = 1.52;
 
-    let mut middle_behind = Sphere::new(Some(Matrix::translation(0.5, 1.0, 3.)));
+    let mut middle_behind = Cube::new(Some(
+        &Matrix::translation(0.5, 1.0, 4.) * &Matrix::rotation_y(PI / 3.),
+    ));
     middle_behind.material.pattern = Box::new(Solid::new(Color::new(1.0, 0.0, 0.0)));
     middle_behind.material.diffuse = 0.7;
     middle_behind.material.specular = 0.3;
+    middle_behind.material.shininess = 100.;
+    middle_behind.material.reflective = 0.01;
     middle_behind.material.reflective = 0.01;
 
     let mut right = Sphere::new(Some(
@@ -80,7 +84,7 @@ fn main() {
         Box::new(right),
         Box::new(floor),
         Box::new(ceil),
-        Box::new(middle_behind)
+        Box::new(middle_behind),
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
@@ -88,11 +92,11 @@ fn main() {
     )];
 
     let camera = Camera::new_with_transform(
-        500,
-        500,
+        1024,
+        1024,
         PI / 3.0,
         view_transform(
-            Tuple::point(0.0, 2.0, -5.0),
+            Tuple::point(0.0, 3.0, -5.0),
             Tuple::point(0.0, 1.0, 0.0),
             Tuple::vector(0.0, 1.0, 0.0),
         ),
