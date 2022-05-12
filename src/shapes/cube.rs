@@ -98,10 +98,14 @@ impl Intersectable for Cube {
         // convert form world space to object space
         let object_point = self.get_inverse_transform() * &world_point;
 
-        let maxc = [object_point.x.abs(), object_point.y.abs(), object_point.z.abs()]
-            .iter()
-            .copied()
-            .fold(f64::NAN, f64::max);
+        let maxc = [
+            object_point.x.abs(),
+            object_point.y.abs(),
+            object_point.z.abs(),
+        ]
+        .iter()
+        .copied()
+        .fold(f64::NAN, f64::max);
 
         let object_normal = if maxc == object_point.x.abs() {
             Tuple::vector(object_point.x, 0.0, 0.0)
@@ -197,6 +201,37 @@ mod test {
         for i in 0..rays.len() {
             let xs = c.intersect(&rays[i]);
             assert!(xs.is_empty());
+        }
+    }
+
+    #[test]
+    fn normal_test() {
+        let c = Cube::new(None);
+        let points = vec![
+            Tuple::point(1., 0.5, -0.8),
+            Tuple::point(-1., -0.2, 0.9),
+            Tuple::point(-0.4, 1., -0.1),
+            Tuple::point(0.3, -1., -0.7),
+            Tuple::point(-0.6, 0.3, 1.),
+            Tuple::point(0.4, 0.4, -1.),
+            Tuple::point(1., 1., 1.),
+            Tuple::point(-1., -1., -1.),
+        ];
+
+        let normals = vec![
+            Tuple::vector(1., 0., 0.),
+            Tuple::vector(-1., 0., 0.),
+            Tuple::vector(0., 1., 0.),
+            Tuple::vector(0., -1., 0.),
+            Tuple::vector(0., 0., 1.),
+            Tuple::vector(0., 0., -1.),
+            Tuple::vector(1., 0., 0.),
+            Tuple::vector(-1., 0., 0.),
+        ];
+
+        for i in 0..points.len() {
+            let normal = c.normal_at(points[i]);
+            assert_eq!(normal, normals[i]);
         }
     }
 }
