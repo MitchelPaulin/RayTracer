@@ -55,7 +55,7 @@ impl World {
         if comps.object.get_material().reflective > 0.
             && comps.object.get_material().transparency > 0.
         {
-            let reflectance = schlick(&comps);
+            let reflectance = schlick(comps);
             return surface + reflected * reflectance + refracted * (1. - reflectance);
         }
 

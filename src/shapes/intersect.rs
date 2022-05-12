@@ -98,7 +98,7 @@ fn hits_equal(a: &Intersection, b: &Intersection) -> bool {
 pub fn prepare_computations<'a>(
     hit: &'a Intersection,
     ray: &'a Ray,
-    intersections: &Vec<Intersection>,
+    intersections: &[Intersection],
 ) -> Computations<'a> {
     let point = ray.position(hit.t);
     let mut normalv = hit.shape.normal_at(point);

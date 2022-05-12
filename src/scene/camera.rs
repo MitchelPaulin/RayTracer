@@ -78,22 +78,48 @@ impl Camera {
     }
 }
 
-pub fn render(camera: Camera, world: World, threads: usize) -> Canvas {
-    assert!(threads >= 1);
-    println!("Rendering image on {} threads", threads);
+pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
+    assert!(thread_count >= 1);
+    println!("Rendering image on {} threads", thread_count);
 
-    let vsize_per_thread = camera.vsize / threads;
+    let vsize_per_thread = camera.vsize / thread_count;
+    let last_thread_offset = camera.vsize % thread_count;
     let mut children = vec![];
 
     let c = Arc::new(camera);
     let w = Arc::new(world);
 
-    for i in 0..threads {
+    for thread_num in 0..thread_count {
         let cc = c.clone();
         let wc = w.clone();
-        children.push(thread::spawn(move || {
-            (render_thread(cc, wc, vsize_per_thread, i), i)
-        }));
+        if thread_num < thread_count - 1 {
+            children.push(thread::spawn(move || {
+                (
+                    render_thread(
+                        cc,
+                        wc,
+                        vsize_per_thread * thread_num,
+                        vsize_per_thread * (thread_num + 1),
+                        thread_num,
+                    ),
+                    thread_num,
+                )
+            }));
+        } else {
+            // we need to add the offset to the last thread in case the number of threads does not evenly divide the height
+            children.push(thread::spawn(move || {
+                (
+                    render_thread(
+                        cc,
+                        wc,
+                        vsize_per_thread * thread_num,
+                        vsize_per_thread * (thread_num + 1) + last_thread_offset,
+                        thread_num,
+                    ),
+                    thread_num,
+                )
+            }));
+        }
     }
 
     let mut result = vec![];
@@ -116,15 +142,16 @@ pub fn render(camera: Camera, world: World, threads: usize) -> Canvas {
 fn render_thread(
     camera: Arc<Camera>,
     world: Arc<World>,
-    vsize_per_thread: usize,
+    thread_y_start: usize,
+    thread_y_end: usize,
     thread_number: usize,
 ) -> Canvas {
-    let mut image = Canvas::new(camera.hsize, vsize_per_thread);
-    for y in (vsize_per_thread * thread_number)..(vsize_per_thread * (thread_number + 1)) {
+    let mut image = Canvas::new(camera.hsize, thread_y_end - thread_y_start);
+    for y in thread_y_start..thread_y_end {
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
             let color = world.color_at(&ray, 5);
-            image.write_pixel(x, y - vsize_per_thread * thread_number, color);
+            image.write_pixel(x, y - thread_y_start, color);
         }
     }
     println!("Thread {} done", thread_number);
