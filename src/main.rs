@@ -11,7 +11,7 @@ use scene::{
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
-    shapes::{cube::Cube, plane::Plane, sphere::Sphere},
+    shapes::{cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
 mod draw;
@@ -36,8 +36,7 @@ fn main() {
     middle_behind.material.diffuse = 0.7;
     middle_behind.material.specular = 0.3;
     middle_behind.material.shininess = 100.;
-    middle_behind.material.reflective = 0.01;
-    middle_behind.material.reflective = 0.01;
+    middle_behind.material.reflective = 0.1;
 
     let mut right = Sphere::new(Some(
         &Matrix::translation(1.5, 0.5, -0.5)
@@ -77,6 +76,34 @@ fn main() {
     ceil.material.ambient = 0.8;
     ceil.material.reflective = 0.3;
 
+    let mut cylinder_outer = Cylinder::new(Some(Matrix::translation(-2.5, 0.0, 4.0)));
+    cylinder_outer.minimum = 0.0;
+    cylinder_outer.maximum = 1.0;
+    cylinder_outer.closed = true;
+    cylinder_outer.material.pattern = Box::new(Solid::new(Color::new(1.0, 0.3, 1.0)));
+    cylinder_outer.material.specular = 1.;
+    cylinder_outer.material.shininess = 20.;
+    cylinder_outer.material.ambient = 0.5;
+    cylinder_outer.material.diffuse = 0.1;
+    cylinder_outer.material.reflective = 0.2;
+
+    let mut cylinder_middle = Cylinder::new(Some(
+        &(&(&Matrix::rotation_x(PI / -2.) * &(Matrix::scaling(0.66, 1.0, 0.66)))
+            * &Matrix::translation(-4.0, -5.0, 2.5))
+            * &Matrix::rotation_z(0.0),
+    ));
+    cylinder_middle.minimum = 1.0;
+    cylinder_middle.maximum = 1.5;
+    cylinder_middle.closed = true;
+    cylinder_middle.material.pattern = Box::new(Solid::new(Color::new(0.0, 1.0, 0.0)));
+    cylinder_middle.material.refractive_index = 1.52;
+    cylinder_middle.material.transparency = 0.7;
+    cylinder_middle.material.specular = 1.;
+    cylinder_middle.material.reflective = 0.9;
+    cylinder_middle.material.shininess = 150.;
+    cylinder_middle.material.ambient = 0.1;
+    cylinder_middle.material.diffuse = 0.1;
+
     let mut world = World::new();
     world.objects = vec![
         Box::new(left),
@@ -85,6 +112,8 @@ fn main() {
         Box::new(floor),
         Box::new(ceil),
         Box::new(middle_behind),
+        Box::new(cylinder_outer),
+        Box::new(cylinder_middle),
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
@@ -92,8 +121,8 @@ fn main() {
     )];
 
     let camera = Camera::new_with_transform(
-        1024,
-        1024,
+        2560,
+        1440,
         PI / 3.0,
         view_transform(
             Tuple::point(0.0, 3.0, -5.0),
