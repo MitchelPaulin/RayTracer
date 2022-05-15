@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+    transform_ray_to_object_space, Intersectable, Intersection,
     OBJECT_COUNTER,
 };
 
@@ -15,6 +15,7 @@ pub struct Plane {
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
+    pub parent: Option<usize>,
     pub material: Material,
 }
 
@@ -42,6 +43,7 @@ impl Plane {
             inverse_transform_transpose: matrices.2,
             material: Material::default_material(),
             id,
+            parent: None,
         }
     }
 }
@@ -63,8 +65,8 @@ impl Intersectable for Plane {
         }]
     }
 
-    fn normal_at(&self, _: Tuple) -> Tuple {
-        object_space_to_world_space(self, &Tuple::vector(0.0, 1.0, 0.0))
+    fn local_normal_at(&self, _: Tuple) -> Tuple {
+        Tuple::vector(0.0, 1.0, 0.0)
     }
 
     fn get_material(&self) -> &Material {
@@ -86,6 +88,14 @@ impl Intersectable for Plane {
     fn get_id(&self) -> usize {
         self.id
     }
+
+    fn get_parent_id(&self) -> Option<usize> {
+        self.parent
+    }
+
+    fn set_parent_id(&mut self, id: usize) {
+        self.parent = Some(id)
+    }
 }
 
 #[cfg(test)]
@@ -99,15 +109,15 @@ mod test {
     fn normal_of_place_is_constant() {
         let p = Plane::new(None);
         assert_eq!(
-            p.normal_at(Tuple::point(0.0, 0.0, 0.0)),
+            p.local_normal_at(Tuple::point(0.0, 0.0, 0.0)),
             Tuple::vector(0.0, 1.0, 0.0)
         );
         assert_eq!(
-            p.normal_at(Tuple::point(10.0, 0.0, -10.0)),
+            p.local_normal_at(Tuple::point(10.0, 0.0, -10.0)),
             Tuple::vector(0.0, 1.0, 0.0)
         );
         assert_eq!(
-            p.normal_at(Tuple::point(-5.0, 0.0, 150.0)),
+            p.local_normal_at(Tuple::point(-5.0, 0.0, 150.0)),
             Tuple::vector(0.0, 1.0, 0.0)
         );
     }

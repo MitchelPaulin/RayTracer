@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+    transform_ray_to_object_space, Intersectable, Intersection,
     OBJECT_COUNTER,
 };
 
@@ -15,6 +15,7 @@ pub struct Cylinder {
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
+    pub parent: Option<usize>,
     pub material: Material,
     pub minimum: f64, // bottom cylinder cutoff
     pub maximum: f64, // top cylinder cutoff
@@ -48,6 +49,7 @@ impl Cylinder {
             minimum: f64::NEG_INFINITY,
             maximum: f64::INFINITY,
             closed: false,
+            parent: None,
         }
     }
 
@@ -122,21 +124,16 @@ impl Intersectable for Cylinder {
         surface_intersects
     }
 
-    fn normal_at(&self, t: Tuple) -> Tuple {
-        let object_point = self.get_inverse_transform() * &t;
-
+    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
         let dist = object_point.x.powi(2) + object_point.z.powi(2);
 
-        let object_normal = if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
+        if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
             Tuple::vector(0.0, 1.0, 0.0)
         } else if dist < 1.0 && object_point.y <= self.minimum + EPSILON {
             Tuple::vector(0.0, -1.0, 0.0)
         } else {
             Tuple::vector(object_point.x, 0.0, object_point.z)
-        };
-
-        // convert the normal vector in object space back to world space
-        object_space_to_world_space(self, &object_normal)
+        }
     }
 
     fn get_material(&self) -> &Material {
@@ -157,6 +154,14 @@ impl Intersectable for Cylinder {
 
     fn get_id(&self) -> usize {
         self.id
+    }
+
+    fn get_parent_id(&self) -> Option<usize> {
+        self.parent
+    }
+
+    fn set_parent_id(&mut self, id: usize) {
+        self.parent = Some(id);
     }
 }
 

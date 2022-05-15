@@ -21,12 +21,14 @@ pub struct Intersection<'a> {
 
 pub trait Intersectable: Sync + Send {
     fn intersect(&self, ray: &Ray) -> Vec<Intersection>;
-    fn normal_at(&self, t: Tuple) -> Tuple;
+    fn local_normal_at(&self, t: Tuple) -> Tuple;
     fn get_material(&self) -> &Material;
     fn get_transform(&self) -> &Matrix;
     fn get_inverse_transform(&self) -> &Matrix;
     fn get_inverse_transform_transpose(&self) -> &Matrix;
     fn get_id(&self) -> usize; // random number to uniquely identify this shape
+    fn get_parent_id(&self) -> Option<usize>;
+    fn set_parent_id(&mut self, id: usize);
 }
 
 impl PartialEq for dyn Intersectable {
@@ -60,9 +62,9 @@ pub fn hit<'a>(intersections: &[Intersection<'a>]) -> Option<Intersection<'a>> {
 
 pub fn transform_ray_to_object_space(shape: &dyn Intersectable, ray: &Ray) -> Ray {
     /*
-        Rather than transforming the sphere we can transform the ray by the inverse of the sphere transform,
+        Rather than transforming the shape we can transform the ray by the inverse of the shape transform,
         this has the same effect on the resulting intersections and allows us to assume were still
-        working with a unit sphere
+        working a base shape with whatever characteristics we want
     */
     let inv = shape.get_inverse_transform();
     ray.apply_transform(inv)
@@ -95,13 +97,22 @@ fn hits_equal(a: &Intersection, b: &Intersection) -> bool {
     a.shape.get_id() == b.shape.get_id() && f64_eq(a.t, b.t)
 }
 
+fn normal_at(world_point: &Tuple, shape: &dyn Intersectable) -> Tuple {
+    // convert form world space to object space
+    let object_point = shape.get_inverse_transform() * world_point;
+    // find the normal in object space
+    let normalv = shape.local_normal_at(object_point);
+    // convert the normal vector in object space back to world space
+    object_space_to_world_space(shape, &normalv)
+}
+
 pub fn prepare_computations<'a>(
     hit: &'a Intersection,
     ray: &'a Ray,
     intersections: &[Intersection],
 ) -> Computations<'a> {
     let point = ray.position(hit.t);
-    let mut normalv = hit.shape.normal_at(point);
+    let mut normalv = normal_at(&point, hit.shape);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
     let over_point = point + normalv * EPSILON;
@@ -168,6 +179,8 @@ pub fn prepare_computations<'a>(
 #[cfg(test)]
 mod test {
 
+    use std::f64::consts::{FRAC_1_SQRT_2, PI};
+
     use crate::{
         math::{matrix::Matrix, utils::f64_eq},
         scene::world::World,
@@ -175,6 +188,33 @@ mod test {
     };
 
     use super::*;
+
+    #[test]
+    fn normal_vector_normalized() {
+        let s = Sphere::new(None);
+        let n = normal_at(&Tuple::point(0.5, 1.0, 0.33), &s);
+        assert!(n == n.normalize());
+    }
+
+    #[test]
+    fn normal_on_translated_sphere() {
+        let s = Sphere::new(Some(Matrix::translation(0.0, 1.0, 0.0)));
+        let n = normal_at(&Tuple::point(0.0, 1.70711, -FRAC_1_SQRT_2), &s);
+        assert!(n == Tuple::vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
+    }
+
+    #[test]
+    fn normal_on_transformed_sphere() {
+        let s = Sphere::new(Some(
+            &Matrix::scaling(1.0, 0.5, 1.0) * &Matrix::rotation_z(PI / 5.0),
+        ));
+
+        let n = normal_at(
+            &Tuple::point(0.0, (2.0_f64).sqrt() / 2.0, -(2.0_f64).sqrt() / 2.0),
+            &s,
+        );
+        assert!(n == Tuple::vector(0.0, 0.97014, -0.24254));
+    }
 
     #[test]
     fn hit_with_positive_t() {

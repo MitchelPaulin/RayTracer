@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+    transform_ray_to_object_space, Intersectable, Intersection,
     OBJECT_COUNTER,
 };
 
@@ -15,6 +15,7 @@ pub struct Cube {
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
+    pub parent: Option<usize>,
     pub material: Material,
 }
 
@@ -42,6 +43,7 @@ impl Cube {
             inverse_transform_transpose: matrices.2,
             material: Material::default_material(),
             id,
+            parent: None,
         }
     }
 }
@@ -93,10 +95,7 @@ impl Intersectable for Cube {
         ]
     }
 
-    fn normal_at(&self, world_point: Tuple) -> Tuple {
-        // convert form world space to object space
-        let object_point = self.get_inverse_transform() * &world_point;
-
+    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
         let maxc = [
             object_point.x.abs(),
             object_point.y.abs(),
@@ -106,16 +105,13 @@ impl Intersectable for Cube {
         .copied()
         .fold(f64::NAN, f64::max);
 
-        let object_normal = if maxc == object_point.x.abs() {
+        if maxc == object_point.x.abs() {
             Tuple::vector(object_point.x, 0.0, 0.0)
         } else if maxc == object_point.y.abs() {
             Tuple::vector(0.0, object_point.y, 0.0)
         } else {
             Tuple::vector(0.0, 0.0, object_point.z)
-        };
-
-        // convert the normal vector in object space back to world space
-        object_space_to_world_space(self, &object_normal)
+        }
     }
 
     fn get_material(&self) -> &Material {
@@ -136,6 +132,14 @@ impl Intersectable for Cube {
 
     fn get_id(&self) -> usize {
         self.id
+    }
+
+    fn get_parent_id(&self) -> Option<usize> {
+        self.parent
+    }
+
+    fn set_parent_id(&mut self, id: usize) {
+        self.parent = Some(id);
     }
 }
 
@@ -229,7 +233,7 @@ mod test {
         ];
 
         for i in 0..points.len() {
-            let normal = c.normal_at(points[i]);
+            let normal = c.local_normal_at(points[i]);
             assert_eq!(normal, normals[i]);
         }
     }

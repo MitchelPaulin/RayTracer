@@ -6,8 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
-    OBJECT_COUNTER,
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
 };
 
 pub struct Cone {
@@ -15,6 +14,7 @@ pub struct Cone {
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
+    pub parent: Option<usize>,
     pub material: Material,
     pub minimum: f64, // bottom cone cutoff
     pub maximum: f64, // top cone cutoff
@@ -48,6 +48,7 @@ impl Cone {
             minimum: f64::NEG_INFINITY,
             maximum: f64::INFINITY,
             closed: false,
+            parent: None,
         }
     }
 
@@ -127,12 +128,10 @@ impl Intersectable for Cone {
         intersects
     }
 
-    fn normal_at(&self, t: Tuple) -> Tuple {
-        let object_point = self.get_inverse_transform() * &t;
-
+    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
         let dist = object_point.x.powi(2) + object_point.z.powi(2);
 
-        let object_normal = if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
+        if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
             Tuple::vector(0.0, 1.0, 0.0)
         } else if dist < 1.0 && object_point.y <= self.minimum + EPSILON {
             Tuple::vector(0.0, -1.0, 0.0)
@@ -142,13 +141,7 @@ impl Intersectable for Cone {
                 y *= -1.0;
             }
             Tuple::vector(object_point.x, y, object_point.z)
-        };
-
-        if object_normal == Tuple::vector(0.0, 0.0, 0.0) {
-            return Tuple::vector(0.0, 0.0, 0.0);
         }
-        // convert the normal vector in object space back to world space
-        object_space_to_world_space(self, &object_normal)
     }
 
     fn get_material(&self) -> &Material {
@@ -169,6 +162,14 @@ impl Intersectable for Cone {
 
     fn get_id(&self) -> usize {
         self.id
+    }
+
+    fn get_parent_id(&self) -> Option<usize> {
+        self.parent
+    }
+
+    fn set_parent_id(&mut self, id: usize) {
+        self.parent = Some(id);
     }
 }
 
@@ -254,14 +255,14 @@ mod test {
 
         let normals = vec![
             Tuple::vector(0.0, 0.0, 0.0),
-            Tuple::vector(1.0, -(2.0_f64.sqrt()), 1.0).normalize(),
-            Tuple::vector(-1.0, 1.0, 0.0).normalize(),
+            Tuple::vector(1.0, -(2.0_f64.sqrt()), 1.0),
+            Tuple::vector(-1.0, 1.0, 0.0),
         ];
 
         let cone = Cone::new(None);
 
         for i in 0..points.len() {
-            let n = cone.normal_at(points[i]);
+            let n = cone.local_normal_at(points[i]);
             assert_eq!(n, normals[i]);
         }
     }

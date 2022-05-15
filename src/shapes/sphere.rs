@@ -6,8 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
-    OBJECT_COUNTER,
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
 };
 
 pub struct Sphere {
@@ -15,6 +14,7 @@ pub struct Sphere {
     transform: Matrix,
     inverse_transform: Matrix,
     inverse_transform_transpose: Matrix,
+    pub parent: Option<usize>,
     pub material: Material,
 }
 
@@ -42,6 +42,7 @@ impl Sphere {
             inverse_transform_transpose: matrices.2,
             material: Material::default_material(),
             id,
+            parent: None,
         }
     }
 
@@ -55,16 +56,9 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn normal_at(&self, world_point: Tuple) -> Tuple {
-        // convert form world space to object space
-        let object_point = self.get_inverse_transform() * &world_point;
-
+    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
         // find the normal vector in object space (i.e. a unit sphere at the origin)
-        // different for every shape
-        let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
-
-        // convert the normal vector in object space back to world space
-        object_space_to_world_space(self, &object_normal)
+        object_point - Tuple::point(0.0, 0.0, 0.0)
     }
 
     /*
@@ -118,11 +112,18 @@ impl Intersectable for Sphere {
     fn get_id(&self) -> usize {
         self.id
     }
+
+    fn get_parent_id(&self) -> Option<usize> {
+        self.parent
+    }
+
+    fn set_parent_id(&mut self, id: usize) {
+        self.parent = Some(id);
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use std::f64::consts::{FRAC_1_SQRT_2, PI};
 
     use crate::math::tuples::Tuple;
 
@@ -192,49 +193,21 @@ mod test {
     #[test]
     fn normal_at_sphere_x_axis() {
         let s = Sphere::new(None);
-        let n = s.normal_at(Tuple::point(1.0, 0.0, 0.0));
+        let n = s.local_normal_at(Tuple::point(1.0, 0.0, 0.0));
         assert!(n == Tuple::vector(1.0, 0.0, 0.0));
     }
 
     #[test]
     fn normal_at_sphere_y_axis() {
         let s = Sphere::new(None);
-        let n = s.normal_at(Tuple::point(0.0, 1.0, 0.0));
+        let n = s.local_normal_at(Tuple::point(0.0, 1.0, 0.0));
         assert!(n == Tuple::vector(0.0, 1.0, 0.0));
     }
 
     #[test]
     fn normal_at_sphere_z_axis() {
         let s = Sphere::new(None);
-        let n = s.normal_at(Tuple::point(0.0, 0.0, 1.0));
+        let n = s.local_normal_at(Tuple::point(0.0, 0.0, 1.0));
         assert!(n == Tuple::vector(0.0, 0.0, 1.0));
-    }
-
-    #[test]
-    fn normal_vector_normalized() {
-        let s = Sphere::new(None);
-        let n = s.normal_at(Tuple::point(0.5, 1.0, 0.33));
-        assert!(n == n.normalize());
-    }
-
-    #[test]
-    fn normal_on_translated_sphere() {
-        let s = Sphere::new(Some(Matrix::translation(0.0, 1.0, 0.0)));
-        let n = s.normal_at(Tuple::point(0.0, 1.70711, -FRAC_1_SQRT_2));
-        assert!(n == Tuple::vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
-    }
-
-    #[test]
-    fn normal_on_transformed_sphere() {
-        let s = Sphere::new(Some(
-            &Matrix::scaling(1.0, 0.5, 1.0) * &Matrix::rotation_z(PI / 5.0),
-        ));
-
-        let n = s.normal_at(Tuple::point(
-            0.0,
-            (2.0_f64).sqrt() / 2.0,
-            -(2.0_f64).sqrt() / 2.0,
-        ));
-        assert!(n == Tuple::vector(0.0, 0.97014, -0.24254));
     }
 }
