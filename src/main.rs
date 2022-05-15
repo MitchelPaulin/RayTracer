@@ -11,7 +11,7 @@ use scene::{
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
-    shapes::{cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
+    shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
 mod draw;
@@ -88,9 +88,8 @@ fn main() {
     cylinder_outer.material.reflective = 0.2;
 
     let mut cylinder_middle = Cylinder::new(Some(
-        &(&(&Matrix::rotation_x(PI / -2.) * &(Matrix::scaling(0.66, 1.0, 0.66)))
-            * &Matrix::translation(-4.0, -5.0, 2.5))
-            * &Matrix::rotation_z(0.0),
+        &(&Matrix::rotation_x(PI / -2.) * &(Matrix::scaling(0.66, 1.0, 0.66)))
+            * &Matrix::translation(-4.0, -5.0, 2.5),
     ));
     cylinder_middle.minimum = 1.0;
     cylinder_middle.maximum = 1.5;
@@ -104,6 +103,25 @@ fn main() {
     cylinder_middle.material.ambient = 0.1;
     cylinder_middle.material.diffuse = 0.1;
 
+    let mut cone = Cone::new(Some(
+        &(&(&(&Matrix::rotation_x(PI / 2.) * &Matrix::rotation_z(PI / -3.))
+            * &Matrix::rotation_x(PI / -7.4))
+            * &Matrix::scaling(1.0, 2.0, 1.0))
+            * &Matrix::translation(-1.0, 1.0, 1.0),
+    ));
+    cone.minimum = 0.0;
+    cone.maximum = 1.0;
+    cone.closed = true;
+    cone.material.pattern = Box::new(Solid::new(Color::new(1.0, 1.0, 0.0)));
+    cone.material.refractive_index = 1.52;
+    cone.material.transparency = 0.7;
+    cone.material.specular = 1.;
+    cone.material.reflective = 0.9;
+    cone.material.shininess = 150.;
+    cone.material.ambient = 0.5;
+    cone.material.diffuse = 0.1;
+    cone.material.ambient = 0.2;
+
     let mut world = World::new();
     world.objects = vec![
         Box::new(left),
@@ -114,15 +132,16 @@ fn main() {
         Box::new(middle_behind),
         Box::new(cylinder_outer),
         Box::new(cylinder_middle),
+        Box::new(cone),
     ];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
-        Tuple::point(-10.0, 10.0, -10.),
+        Tuple::point(-10.0, 13.0, -10.),
     )];
 
     let camera = Camera::new_with_transform(
-        2560,
-        1440,
+        2560 * 4,
+        1440 * 4,
         PI / 3.0,
         view_transform(
             Tuple::point(0.0, 3.0, -5.0),
