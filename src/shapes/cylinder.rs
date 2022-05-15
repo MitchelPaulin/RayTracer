@@ -6,7 +6,8 @@ use crate::{
 };
 
 use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER, object_space_to_world_space,
+    object_space_to_world_space, transform_ray_to_object_space, Intersectable, Intersection,
+    OBJECT_COUNTER,
 };
 
 pub struct Cylinder {
@@ -23,34 +24,30 @@ pub struct Cylinder {
 impl Cylinder {
     pub fn new(transform: Option<Matrix>) -> Cylinder {
         let id = OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst);
-        match transform {
+        let matrices = match transform {
             Some(matrix) => {
                 assert_eq!(matrix.size, 4);
-                // cache some matrices so we don't need to calculate it every time
                 let inverse = matrix.inverse();
                 let mut inv_transpose = matrix.inverse();
                 inv_transpose.transpose();
-                Cylinder {
-                    transform: matrix,
-                    inverse_transform: inverse,
-                    inverse_transform_transpose: inv_transpose,
-                    material: Material::default_material(),
-                    id,
-                    minimum: f64::NEG_INFINITY,
-                    maximum: f64::INFINITY,
-                    closed: false,
-                }
+                (matrix, inverse, inv_transpose)
             }
-            None => Cylinder {
-                transform: Matrix::identity(4),
-                inverse_transform: Matrix::identity(4),
-                inverse_transform_transpose: Matrix::identity(4),
-                material: Material::default_material(),
-                id,
-                minimum: f64::NEG_INFINITY,
-                maximum: f64::INFINITY,
-                closed: false,
-            },
+            None => (
+                Matrix::identity(4),
+                Matrix::identity(4),
+                Matrix::identity(4),
+            ),
+        };
+
+        Self {
+            transform: matrices.0,
+            inverse_transform: matrices.1,
+            inverse_transform_transpose: matrices.2,
+            material: Material::default_material(),
+            id,
+            minimum: f64::NEG_INFINITY,
+            maximum: f64::INFINITY,
+            closed: false,
         }
     }
 
