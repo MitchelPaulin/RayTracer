@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::{f64::consts::PI, time::Instant};
+use std::{f64::consts::PI, sync::atomic::Ordering, time::Instant};
 
 use draw::{color::Color, light::PointLight};
 use math::{matrix::Matrix, tuples::Tuple};
@@ -11,6 +11,7 @@ use scene::{
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
+    scene::world::RAY_INTERSECT_COUNTER,
     shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
@@ -19,10 +20,21 @@ mod math;
 mod scene;
 mod shapes;
 fn main() {
-    test_scene();
+    let scene = test_scene();
+
+    let start = Instant::now();
+    let image = render(scene.0, scene.1, 6);
+    image.write_to_ppm("canvas.ppm");
+    let intersects = RAY_INTERSECT_COUNTER.load(Ordering::SeqCst);
+    println!(
+        "Image rendering finished in {:?} with {} ray-object intersections at a speed of {} intersections/ms.\nFile written to canvas.ppm",
+        Instant::now().duration_since(start),
+        intersects,
+        (intersects as f64 / Instant::now().duration_since(start).as_millis() as f64).round()
+    );
 }
 
-fn test_scene() {
+fn test_scene() -> (Camera, World) {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
     middle.material.pattern = Box::new(Solid::new(Color::black()));
     middle.material.specular = 1.;
@@ -144,8 +156,8 @@ fn test_scene() {
     )];
 
     let camera = Camera::new_with_transform(
-        500,
-        500,
+        1920,
+        1080,
         PI / 3.0,
         view_transform(
             Tuple::point(0.0, 3.0, -5.0),
@@ -154,11 +166,5 @@ fn test_scene() {
         ),
     );
 
-    let start = Instant::now();
-    let image = render(camera, world, 6);
-    image.write_to_ppm("canvas.ppm");
-    println!(
-        "Image rendering finished in {}s. File written to canvas.ppm",
-        Instant::now().duration_since(start).as_secs()
-    );
+    (camera, world)
 }

@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use crate::{
     draw::{color::Color, light::PointLight},
     math::{ray::Ray, tuples::Tuple, utils::f64_eq},
@@ -8,6 +10,9 @@ pub struct World {
     pub objects: Vec<Box<dyn Intersectable>>,
     pub light_sources: Vec<PointLight>,
 }
+
+// atomic counter to ensure each shape in the scene will have a unique id
+pub static RAY_INTERSECT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 impl World {
     pub fn new() -> World {
@@ -21,6 +26,7 @@ impl World {
         let mut intersections = vec![];
 
         for s in &self.objects {
+            RAY_INTERSECT_COUNTER.fetch_add(1, Ordering::SeqCst);
             intersections.append(&mut s.intersect(ray));
         }
 
