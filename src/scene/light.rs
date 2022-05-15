@@ -1,6 +1,8 @@
-use crate::{math::tuples::Tuple, shapes::intersect::Intersectable};
-
-use super::{color::Color, material::Material};
+use crate::{
+    draw::{color::Color, material::Material},
+    math::tuples::Tuple,
+    shapes::intersect::Intersectable,
+};
 
 pub struct PointLight {
     intensity: Color,

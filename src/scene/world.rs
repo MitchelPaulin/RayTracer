@@ -1,10 +1,12 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::{
-    draw::{color::Color, light::PointLight},
+    draw::color::Color,
     math::{ray::Ray, tuples::Tuple, utils::f64_eq},
     shapes::intersect::{hit, prepare_computations, Computations, Intersectable, Intersection},
 };
+
+use super::light::PointLight;
 
 pub struct World {
     pub objects: Vec<Box<dyn Intersectable>>,

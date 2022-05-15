@@ -2,10 +2,11 @@
 
 use std::{f64::consts::PI, sync::atomic::Ordering, time::Instant};
 
-use draw::{color::Color, light::PointLight};
+use draw::color::Color;
 use math::{matrix::Matrix, tuples::Tuple};
 use scene::{
     camera::{render, view_transform, Camera},
+    light::PointLight,
     world::World,
 };
 
