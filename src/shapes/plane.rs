@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER, object_space_to_world_space,
 };
 
 pub struct Plane {
@@ -64,7 +64,7 @@ impl Intersectable for Plane {
     }
 
     fn normal_at(&self, _: Tuple) -> Tuple {
-        Tuple::vector(0.0, 1.0, 0.0)
+        object_space_to_world_space(self, &Tuple::vector(0.0, 1.0, 0.0))
     }
 
     fn get_material(&self) -> &Material {

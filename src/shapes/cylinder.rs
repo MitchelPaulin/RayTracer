@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER, object_space_to_world_space,
 };
 
 pub struct Cylinder {
@@ -130,13 +130,16 @@ impl Intersectable for Cylinder {
 
         let dist = object_point.x.powi(2) + object_point.z.powi(2);
 
-        if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
+        let object_normal = if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
             Tuple::vector(0.0, 1.0, 0.0)
         } else if dist < 1.0 && object_point.y <= self.minimum + EPSILON {
             Tuple::vector(0.0, -1.0, 0.0)
         } else {
             Tuple::vector(object_point.x, 0.0, object_point.z)
-        }
+        };
+
+        // convert the normal vector in object space back to world space
+        object_space_to_world_space(self, &object_normal)
     }
 
     fn get_material(&self) -> &Material {
