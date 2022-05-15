@@ -19,6 +19,10 @@ mod math;
 mod scene;
 mod shapes;
 fn main() {
+    test_scene();
+}
+
+fn test_scene() {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
     middle.material.pattern = Box::new(Solid::new(Color::black()));
     middle.material.specular = 1.;
@@ -140,8 +144,8 @@ fn main() {
     )];
 
     let camera = Camera::new_with_transform(
-        2560 * 4,
-        1440 * 4,
+        500,
+        500,
         PI / 3.0,
         view_transform(
             Tuple::point(0.0, 3.0, -5.0),
