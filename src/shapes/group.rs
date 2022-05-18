@@ -124,7 +124,9 @@ impl Intersectable for Group {
 #[cfg(test)]
 mod test {
 
-    use crate::shapes::sphere::Sphere;
+    use std::f64::consts::PI;
+
+    use crate::{scene::world::World, shapes::sphere::Sphere};
 
     use super::*;
 
@@ -176,5 +178,27 @@ mod test {
         let r = Ray::new(Tuple::point(10.0, 0.0, -10.0), Tuple::vector(0.0, 0.0, 1.0));
         let xs = g.intersect(&r);
         assert_eq!(xs.len(), 2);
+    }
+
+    #[test]
+    fn finding_the_normal_on_a_child_object() {
+        let mut g1 = Group::new(Some(Matrix::rotation_y(PI / 2.0)));
+        let mut g2 = Group::new(Some(Matrix::scaling(1.0, 2.0, 3.0)));
+        let g2_id = g2.get_id();
+        let s = Sphere::new(Some(Matrix::translation(5.0, 0.0, 0.0)));
+        let s_id = s.get_id();
+        g2.add_object(Box::new(s));
+        g1.add_object(Box::new(g2));
+
+        let mut dummy_world = World::new();
+        dummy_world.objects = vec![Box::new(g1)];
+
+        let n = dummy_world.objects[0]
+            .get_object_by_id(g2_id)
+            .unwrap()
+            .get_object_by_id(s_id)
+            .unwrap()
+            .normal_at(Tuple::point(1.7321, 1.1547, -5.5774), Some(&dummy_world));
+        assert_eq!(n, Tuple::vector(0.28570368184140726, 0.42854315178114105, -0.8571605294481017))
     }
 }
