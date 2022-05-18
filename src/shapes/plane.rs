@@ -6,8 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection,
-    OBJECT_COUNTER,
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
 };
 
 pub struct Plane {

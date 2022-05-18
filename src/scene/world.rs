@@ -48,12 +48,12 @@ impl World {
 
         for light in &self.light_sources {
             surface += light.lighting(
-                comps.object,
                 comps.object.get_material(),
                 comps.over_point,
                 comps.eyev,
                 comps.normalv,
                 self.is_shadowed(light, &comps.over_point),
+                comps.object.world_to_object(comps.over_point, self)
             );
         }
 
@@ -74,7 +74,7 @@ impl World {
         let intersections = self.intersect_world(ray);
         match hit(&intersections) {
             Some(hit) => {
-                let comps = prepare_computations(&hit, ray, &intersections);
+                let comps = prepare_computations(&hit, ray, &intersections, Some(self));
                 self.shade_hit(&comps, depth)
             }
             None => Color::black(),
@@ -137,6 +137,20 @@ impl World {
             Some(hit) => hit.t < distance,
             None => false,
         }
+    }
+
+    pub fn get_object_by_id(&self, id: usize) -> Option<&dyn Intersectable> {
+        for s in &self.objects {
+            if s.get_id() == id {
+                return Some(s.as_ref());
+            }
+
+            if let Some(c) = s.get_object_by_id(id) {
+                return Some(c);
+            }
+        }
+
+        None
     }
 }
 
@@ -224,7 +238,7 @@ mod test {
         let w = populated_world();
         let ray = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let intersections = w.intersect_world(&ray);
-        let comps = prepare_computations(&intersections[0], &ray, &intersections);
+        let comps = prepare_computations(&intersections[0], &ray, &intersections, None);
         let c = w.shade_hit(&comps, 5);
         assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
     }
@@ -300,7 +314,7 @@ mod test {
         s2.material.ambient = 1.0;
         w.objects[1] = Box::new(s2);
         let intersections = w.objects[1].intersect(&r);
-        let comps = prepare_computations(&intersections[0], &r, &intersections);
+        let comps = prepare_computations(&intersections[0], &r, &intersections, None);
         let color = w.reflected_color(&comps, 5);
         assert_eq!(color, Color::black());
     }
@@ -316,7 +330,7 @@ mod test {
             Tuple::vector(0.0, (2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0),
         );
         let intersections = w.objects.last().unwrap().intersect(&r);
-        let comps = prepare_computations(&intersections[0], &r, &intersections);
+        let comps = prepare_computations(&intersections[0], &r, &intersections, None);
         assert_eq!(
             w.reflected_color(&comps, 5),
             Color::new(
@@ -338,7 +352,7 @@ mod test {
             Tuple::vector(0.0, (2.0_f64).sqrt() / -2.0, (2.0_f64).sqrt() / 2.0),
         );
         let intersections = w.objects.last().unwrap().intersect(&r);
-        let comps = prepare_computations(&intersections[0], &r, &intersections);
+        let comps = prepare_computations(&intersections[0], &r, &intersections, None);
         assert_eq!(
             w.shade_hit(&comps, 5),
             Color::new(0.8767572837020907, 0.924340334075874, 0.8291742333283075)
@@ -350,7 +364,7 @@ mod test {
         let w = populated_world();
         let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0., 0., 1.));
         let xs = w.objects.first().unwrap().intersect(&r);
-        let comps = prepare_computations(&xs[0], &r, &xs);
+        let comps = prepare_computations(&xs[0], &r, &xs, None);
         let c = w.refracted_color(&comps, 5);
         assert_eq!(c, Color::black());
     }
@@ -369,7 +383,7 @@ mod test {
         w.objects[0] = Box::new(s1);
 
         let xs = w.objects[0].intersect(&r);
-        let comps = prepare_computations(&xs[1], &r, &xs);
+        let comps = prepare_computations(&xs[1], &r, &xs, None);
         let c = w.refracted_color(&comps, 5);
         assert_eq!(c, Color::black());
     }
@@ -393,7 +407,7 @@ mod test {
         );
 
         let xs = w.intersect_world(&r);
-        let comps = prepare_computations(&xs[0], &r, &xs);
+        let comps = prepare_computations(&xs[0], &r, &xs, None);
         let color = w.shade_hit(&comps, 5);
         assert_eq!(color, Color::new(0.93642, 0.68642, 0.68642));
     }
@@ -403,7 +417,7 @@ mod test {
         let s = Sphere::new_glass_sphere(None);
         let r = Ray::new(Tuple::point(0., 0.99, -2.0), Tuple::vector(0., 0., 1.));
         let xs = s.intersect(&r);
-        let comps = prepare_computations(&xs[0], &r, &xs);
+        let comps = prepare_computations(&xs[0], &r, &xs, None);
         assert!(f64_eq(schlick(&comps), 0.4888143830387389));
     }
 
@@ -427,7 +441,7 @@ mod test {
         );
 
         let xs = w.intersect_world(&r);
-        let comps = prepare_computations(&xs[0], &r, &xs);
+        let comps = prepare_computations(&xs[0], &r, &xs, None);
         let color = w.shade_hit(&comps, 5);
         assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
     }

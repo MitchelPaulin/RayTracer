@@ -9,6 +9,7 @@ use scene::{
     light::PointLight,
     world::World,
 };
+use shapes::group::Group;
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
@@ -36,6 +37,8 @@ fn main() {
 }
 
 fn test_scene() -> (Camera, World) {
+    let mut g = Group::new(None);
+
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
     middle.material.pattern = Box::new(Solid::new(Color::black()));
     middle.material.specular = 1.;
@@ -140,17 +143,17 @@ fn test_scene() -> (Camera, World) {
     cone.material.ambient = 0.2;
 
     let mut world = World::new();
-    world.objects = vec![
-        Box::new(left),
-        Box::new(middle),
-        Box::new(right),
-        Box::new(floor),
-        Box::new(ceil),
-        Box::new(middle_behind),
-        Box::new(cylinder_outer),
-        Box::new(cylinder_middle),
-        Box::new(cone),
-    ];
+    g.add_object(Box::new(left));
+    g.add_object(Box::new(middle));
+    g.add_object(Box::new(right));
+    g.add_object(Box::new(floor));
+    g.add_object(Box::new(middle_behind));
+    g.add_object(Box::new(cylinder_outer));
+    g.add_object(Box::new(cylinder_middle));
+    g.add_object(Box::new(cone));
+    g.add_object(Box::new(ceil));
+
+    world.objects = vec![Box::new(g)];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
         Tuple::point(-10.0, 13.0, -10.),

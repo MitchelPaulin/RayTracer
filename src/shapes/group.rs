@@ -5,7 +5,9 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
-use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER, transform_ray_to_object_space};
+use super::intersect::{
+    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
+};
 
 pub struct Group {
     id: usize,
@@ -18,7 +20,7 @@ pub struct Group {
 }
 
 impl Group {
-    fn new(transform: Option<Matrix>) -> Self {
+    pub fn new(transform: Option<Matrix>) -> Self {
         let id = OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst);
         let matrices = match transform {
             Some(matrix) => {
@@ -68,6 +70,22 @@ impl Intersectable for Group {
         }
         intersects.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
         intersects
+    }
+
+    fn get_object_by_id(&self, id: usize) -> Option<&dyn Intersectable> {
+        let mut shape = None;
+        for s in &self.objects {
+            if s.get_id() == id {
+                shape = Some(s.as_ref());
+                break;
+            }
+            if let Some(c) = s.get_object_by_id(id) {
+                shape = Some(c);
+                break;
+            }
+        }
+
+        shape
     }
 
     fn local_normal_at(&self, _: Tuple) -> Tuple {
