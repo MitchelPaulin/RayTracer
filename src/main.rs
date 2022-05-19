@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::{f64::consts::PI, fs, sync::atomic::Ordering, time::Instant};
+use std::{f64::consts::PI, fs};
 
 use draw::color::Color;
 use math::{matrix::Matrix, tuples::Tuple};
@@ -14,7 +14,6 @@ use shapes::group::Group;
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
     obj_parser::parse_obj_file,
-    scene::world::RAY_INTERSECT_COUNTER,
     shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
@@ -23,6 +22,9 @@ mod math;
 mod obj_parser;
 mod scene;
 mod shapes;
+
+const THREADS: usize = 6;
+
 fn main() {
     let mut scene = test_scene();
 
@@ -31,18 +33,10 @@ fn main() {
 
     let g = parse_obj_file(&obj);
 
-    scene.1.objects.push(Box::new(g));
+    scene.1.objects = vec![Box::new(g)];
 
-    let start = Instant::now();
-    let image = render(scene.0, scene.1, 6);
+    let image = render(scene.0, scene.1, THREADS);
     image.write_to_ppm("canvas.ppm");
-    let intersects = RAY_INTERSECT_COUNTER.load(Ordering::SeqCst);
-    println!(
-        "Image rendering finished in {:?} with {} ray-object intersections at a speed of {} intersections/ms.\nFile written to canvas.ppm",
-        Instant::now().duration_since(start),
-        intersects,
-        (intersects as f64 / Instant::now().duration_since(start).as_millis() as f64).round()
-    );
 }
 
 fn test_scene() -> (Camera, World) {

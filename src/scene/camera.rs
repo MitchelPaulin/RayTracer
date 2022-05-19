@@ -1,5 +1,7 @@
 use std::{sync::Arc, thread};
 
+use indicatif::{MultiProgress, ProgressBar, ProgressDrawTarget, ProgressStyle};
+
 use crate::{
     draw::canvas::{stitch_canvases, Canvas},
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
@@ -80,18 +82,29 @@ impl Camera {
 
 pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
     assert!(thread_count >= 1);
-    println!("Rendering image on {} threads", thread_count);
 
     let vsize_per_thread = camera.vsize / thread_count;
     let last_thread_offset = camera.vsize % thread_count;
     let mut children = vec![];
 
+    let multi_progress_bar = MultiProgress::new();
+    let progress_style = ProgressStyle::default_bar()
+        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+        .progress_chars("##-");
+    multi_progress_bar.set_draw_target(ProgressDrawTarget::stdout());
     let c = Arc::new(camera);
     let w = Arc::new(world);
 
     for thread_num in 0..thread_count {
         let cc = c.clone();
         let wc = w.clone();
+        let progress_bar = multi_progress_bar.add(ProgressBar::new(vsize_per_thread as u64));
+        progress_bar.set_style(progress_style.clone());
+
+        if thread_num == 0 {
+            progress_bar.println(format!("Rendering image on {} thread(s)", thread_count));
+        }
+
         if thread_num < thread_count - 1 {
             children.push(thread::spawn(move || {
                 (
@@ -101,6 +114,7 @@ pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
                         vsize_per_thread * thread_num,
                         vsize_per_thread * (thread_num + 1),
                         thread_num,
+                        progress_bar,
                     ),
                     thread_num,
                 )
@@ -115,12 +129,16 @@ pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
                         vsize_per_thread * thread_num,
                         vsize_per_thread * (thread_num + 1) + last_thread_offset,
                         thread_num,
+                        progress_bar,
                     ),
                     thread_num,
                 )
             }));
         }
     }
+
+    // must join progress bar handle before threads or nothing will render
+    multi_progress_bar.join().unwrap();
 
     let mut result = vec![];
     for child in children {
@@ -135,7 +153,6 @@ pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
     for c in result {
         canvases.push(c.0);
     }
-
     stitch_canvases(canvases)
 }
 
@@ -145,16 +162,18 @@ fn render_thread(
     thread_y_start: usize,
     thread_y_end: usize,
     thread_number: usize,
+    progress_bar: ProgressBar,
 ) -> Canvas {
     let mut image = Canvas::new(camera.hsize, thread_y_end - thread_y_start);
     for y in thread_y_start..thread_y_end {
+        progress_bar.inc(1);
         for x in 0..camera.hsize {
             let ray = camera.ray_for_pixel(x, y);
             let color = world.color_at(&ray, 5);
             image.write_pixel(x, y - thread_y_start, color);
         }
     }
-    println!("Thread {} done", thread_number);
+    progress_bar.finish_with_message(format!("Thread {} done", thread_number));
     image
 }
 
