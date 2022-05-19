@@ -21,7 +21,7 @@ pub struct Intersection<'a> {
 }
 
 pub trait Intersectable: Sync + Send {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection>;
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection>;
     fn local_normal_at(&self, t: Tuple) -> Tuple;
     fn get_material(&self) -> &Material;
     fn get_transform(&self) -> &Matrix;
@@ -30,6 +30,12 @@ pub trait Intersectable: Sync + Send {
     fn get_id(&self) -> usize; // random number to uniquely identify this shape
     fn get_parent_id(&self) -> Option<usize>;
     fn set_parent_id(&mut self, id: usize);
+
+    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
+        let inv = self.get_inverse_transform();
+        let r = ray.apply_transform(inv);
+        self.local_intersect(&r)
+    }
 
     fn get_object_by_id(&self, _id: usize) -> Option<&dyn Intersectable> {
         None
@@ -49,7 +55,9 @@ pub trait Intersectable: Sync + Send {
 
     fn normal_to_world(&self, normal: Tuple, w: &World) -> Tuple {
         assert!(normal.is_vector());
-        let world_normal = (self.get_inverse_transform_transpose() * &normal).normalize();
+        let mut norm = self.get_inverse_transform_transpose() * &normal;
+        norm.w = 0.0;
+        let world_normal = norm.normalize();
 
         match self.get_parent_id() {
             Some(id) => {
@@ -105,16 +113,6 @@ pub fn hit<'a>(intersections: &[Intersection<'a>]) -> Option<Intersection<'a>> {
     }
 
     front_intersection
-}
-
-pub fn transform_ray_to_object_space(shape: &dyn Intersectable, ray: &Ray) -> Ray {
-    /*
-        Rather than transforming the shape we can transform the ray by the inverse of the shape transform,
-        this has the same effect on the resulting intersections and allows us to assume were still
-        working a base shape with whatever characteristics we want
-    */
-    let inv = shape.get_inverse_transform();
-    ray.apply_transform(inv)
 }
 
 pub fn object_space_to_world_space(shape: &dyn Intersectable, object_normal: &Tuple) -> Tuple {

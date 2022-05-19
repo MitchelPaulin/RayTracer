@@ -5,10 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
-use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection,
-    OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Cylinder {
     id: usize,
@@ -78,20 +75,19 @@ impl Cylinder {
 }
 
 impl Intersectable for Cylinder {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let transformed_ray = transform_ray_to_object_space(self, ray);
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
 
-        let a = transformed_ray.direction.x.powi(2) + transformed_ray.direction.z.powi(2);
+        let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
 
         // ray is parallel to the cylinder, could still intersect a cap however
         if a.abs() < EPSILON {
-            return self.intersect_caps(&transformed_ray);
+            return self.intersect_caps(&ray);
         }
 
-        let b = 2.0 * transformed_ray.origin.x * transformed_ray.direction.x
-            + 2.0 * transformed_ray.origin.z * transformed_ray.direction.z;
+        let b = 2.0 * ray.origin.x * ray.direction.x
+            + 2.0 * ray.origin.z * ray.direction.z;
 
-        let c = transformed_ray.origin.x.powi(2) + transformed_ray.origin.z.powi(2) - 1.0;
+        let c = ray.origin.x.powi(2) + ray.origin.z.powi(2) - 1.0;
 
         let disc = b.powi(2) - 4.0 * a * c;
 
@@ -109,17 +105,17 @@ impl Intersectable for Cylinder {
 
         let mut surface_intersects = vec![];
 
-        let y0 = transformed_ray.origin.y + t0 * transformed_ray.direction.y;
+        let y0 = ray.origin.y + t0 * ray.direction.y;
         if self.minimum < y0 && y0 < self.maximum {
             surface_intersects.push(Intersection { shape: self, t: t0 });
         }
 
-        let y1 = transformed_ray.origin.y + t1 * transformed_ray.direction.y;
+        let y1 = ray.origin.y + t1 * ray.direction.y;
         if self.minimum < y1 && y1 < self.maximum {
             surface_intersects.push(Intersection { shape: self, t: t1 });
         }
 
-        let mut cap_intersects = self.intersect_caps(&transformed_ray);
+        let mut cap_intersects = self.intersect_caps(&ray);
         surface_intersects.append(&mut cap_intersects);
         surface_intersects
     }

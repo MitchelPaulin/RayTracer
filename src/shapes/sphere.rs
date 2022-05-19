@@ -5,9 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
-use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Sphere {
     id: usize,
@@ -64,15 +62,13 @@ impl Intersectable for Sphere {
     /*
         Determine at what points the ray intersects the sphere, if any
     */
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let transformed_ray = transform_ray_to_object_space(self, ray);
-
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         // cast the ray
-        let sphere_to_ray = transformed_ray.origin - Tuple::point(0.0, 0.0, 0.0);
+        let sphere_to_ray = ray.origin - Tuple::point(0.0, 0.0, 0.0);
 
         // calculate the discriminant
-        let a = transformed_ray.direction.dot(&transformed_ray.direction);
-        let b = 2.0 * sphere_to_ray.dot(&transformed_ray.direction);
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * sphere_to_ray.dot(&ray.direction);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
 
         let discriminant = b * b - 4.0 * a * c;

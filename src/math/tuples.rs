@@ -139,12 +139,12 @@ impl Tuple {
     }
 
     pub fn magnitude(&self) -> f64 {
-        //assert!(self.is_vector());
+        assert!(self.is_vector());
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
     pub fn normalize(&self) -> Tuple {
-        //assert!(self.is_vector());
+        assert!(self.is_vector());
         let mag = self.magnitude();
         assert!(!f64_eq(mag, 0.0));
         Tuple::vector(self.x / mag, self.y / mag, self.z / mag)

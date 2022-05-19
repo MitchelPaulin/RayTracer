@@ -5,9 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple},
 };
 
-use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Group {
     id: usize,
@@ -62,8 +60,7 @@ impl Group {
 }
 
 impl Intersectable for Group {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let ray = transform_ray_to_object_space(self, ray);
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         let mut intersects = vec![];
         for s in &self.objects {
             intersects.append(&mut s.intersect(&ray));
@@ -89,7 +86,7 @@ impl Intersectable for Group {
     }
 
     fn local_normal_at(&self, _: Tuple) -> Tuple {
-        panic!("A group does not have a normal, something we wrong")
+        panic!("A group does not have a normal, something went wrong")
     }
 
     fn get_material(&self) -> &Material {
@@ -199,6 +196,13 @@ mod test {
             .get_object_by_id(s_id)
             .unwrap()
             .normal_at(Tuple::point(1.7321, 1.1547, -5.5774), Some(&dummy_world));
-        assert_eq!(n, Tuple::vector(0.28570368184140726, 0.42854315178114105, -0.8571605294481017))
+        assert_eq!(
+            n,
+            Tuple::vector(
+                0.28570368184140726,
+                0.42854315178114105,
+                -0.8571605294481017
+            )
+        )
     }
 }

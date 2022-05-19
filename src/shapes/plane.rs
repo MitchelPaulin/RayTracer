@@ -5,9 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
-use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Plane {
     id: usize,
@@ -48,19 +46,17 @@ impl Plane {
 }
 
 impl Intersectable for Plane {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let transformed_ray = transform_ray_to_object_space(self, ray);
-
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         // for the purposes of keeping the calculations easy assume the plane is flat in the xz direction
 
         // the ray is parallel to the plane, thus it will never intersect it
-        if transformed_ray.direction.y.abs() < EPSILON {
+        if ray.direction.y.abs() < EPSILON {
             return vec![];
         }
 
         vec![Intersection {
             shape: self,
-            t: -transformed_ray.origin.y / transformed_ray.direction.y,
+            t: -ray.origin.y / ray.direction.y,
         }]
     }
 

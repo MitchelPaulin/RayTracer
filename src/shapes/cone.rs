@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection, OBJECT_COUNTER,
+   Intersectable, Intersection, OBJECT_COUNTER,
 };
 
 pub struct Cone {
@@ -84,9 +84,7 @@ fn check_cap(ray: &Ray, t: f64, radius: f64) -> bool {
 }
 
 impl Intersectable for Cone {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let ray = transform_ray_to_object_space(self, ray);
-
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         let a = ray.direction.x.powi(2) - ray.direction.y.powi(2) + ray.direction.z.powi(2);
         let b = 2.0 * ray.direction.x * ray.origin.x - 2.0 * ray.direction.y * ray.origin.y
             + 2.0 * ray.direction.z * ray.origin.z;
@@ -200,7 +198,7 @@ mod test {
         for i in 0..origins.len() {
             let dir = direction[i].normalize();
             let ray = Ray::new(origins[i], dir);
-            let xs = cone.intersect(&ray);
+            let xs = cone.local_intersect(&ray);
             assert!(f64_eq(xs[0].t, ans[i].0));
             assert!(f64_eq(xs[1].t, ans[i].1));
         }
@@ -211,7 +209,7 @@ mod test {
         let cone = Cone::new(None);
         let dir = Tuple::vector(0.0, 1.0, 1.0).normalize();
         let r = Ray::new(Tuple::point(0.0, 0.0, -1.0), dir);
-        let xs = cone.intersect(&r);
+        let xs = cone.local_intersect(&r);
         assert_eq!(xs.len(), 1);
         assert!(f64_eq(xs[0].t, 0.35355));
     }
@@ -240,7 +238,7 @@ mod test {
         for i in 0..origins.len() {
             let dir = direction[i].normalize();
             let ray = Ray::new(origins[i], dir);
-            let xs = cone.intersect(&ray);
+            let xs = cone.local_intersect(&ray);
             assert_eq!(xs.len(), ans[i]);
         }
     }

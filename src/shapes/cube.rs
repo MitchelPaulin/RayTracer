@@ -5,10 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
-use super::intersect::{
-    transform_ray_to_object_space, Intersectable, Intersection,
-    OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Cube {
     id: usize,
@@ -69,12 +66,11 @@ fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
 }
 
 impl Intersectable for Cube {
-    fn intersect(&self, ray: &Ray) -> Vec<Intersection> {
-        let transformed_ray = transform_ray_to_object_space(self, ray);
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
 
-        let x = check_axis(transformed_ray.origin.x, transformed_ray.direction.x);
-        let y = check_axis(transformed_ray.origin.y, transformed_ray.direction.y);
-        let z = check_axis(transformed_ray.origin.z, transformed_ray.direction.z);
+        let x = check_axis(ray.origin.x, ray.direction.x);
+        let y = check_axis(ray.origin.y, ray.direction.y);
+        let z = check_axis(ray.origin.z, ray.direction.z);
 
         let tmin = [x.0, y.0, z.0].iter().copied().fold(f64::NAN, f64::max);
         let tmax = [x.1, y.1, z.1].iter().copied().fold(f64::NAN, f64::min);

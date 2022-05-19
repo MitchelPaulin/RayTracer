@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::{f64::consts::PI, sync::atomic::Ordering, time::Instant};
+use std::{f64::consts::PI, sync::atomic::Ordering, time::Instant, fs};
 
 use draw::color::Color;
 use math::{matrix::Matrix, tuples::Tuple};
@@ -13,16 +13,25 @@ use shapes::group::Group;
 
 use crate::{
     draw::patterns::{Checkered, Rings, Solid},
+    obj_parser::parse_obj_file,
     scene::world::RAY_INTERSECT_COUNTER,
     shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
 mod draw;
 mod math;
+mod obj_parser;
 mod scene;
 mod shapes;
 fn main() {
-    let scene = test_scene();
+    let mut scene = test_scene();
+
+    let obj = fs::read_to_string("./obj/teapot.obj")
+        .expect("Something went wrong reading the file");
+
+    let g = parse_obj_file(&obj);
+
+    //scene.1.objects.push(Box::new(g));
 
     let start = Instant::now();
     let image = render(scene.0, scene.1, 6);

@@ -5,3 +5,4 @@ pub mod group;
 pub mod intersect;
 pub mod plane;
 pub mod sphere;
+pub mod triangle;
