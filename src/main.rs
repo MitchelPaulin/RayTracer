@@ -1,6 +1,6 @@
 #![allow(dead_code, non_snake_case)]
 
-use std::{f64::consts::PI, sync::atomic::Ordering, time::Instant, fs};
+use std::{f64::consts::PI, fs, sync::atomic::Ordering, time::Instant};
 
 use draw::color::Color;
 use math::{matrix::Matrix, tuples::Tuple};
@@ -26,8 +26,8 @@ mod shapes;
 fn main() {
     let mut scene = test_scene();
 
-    let obj = fs::read_to_string("./obj/teapot.obj")
-        .expect("Something went wrong reading the file");
+    let obj =
+        fs::read_to_string("./obj/teapot.obj").expect("Something went wrong reading the file");
 
     let g = parse_obj_file(&obj);
 

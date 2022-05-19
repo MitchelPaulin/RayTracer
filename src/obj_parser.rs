@@ -24,8 +24,8 @@ pub fn parse_obj_file(s: &str) -> Group {
             )),
             "f" => {
                 let mut face_vertices_indices = vec![];
-                for i in 1..symbols.len() {
-                    let face_info: Vec<&str> = symbols[i].split('/').collect();
+                for symbol in symbols.iter().skip(1) {
+                    let face_info: Vec<&str> = symbol.split('/').collect();
                     face_vertices_indices.push(face_info[0].parse::<usize>().unwrap());
                 }
                 for t in fan_triangulation(face_vertices_indices, &vertices) {
@@ -42,7 +42,7 @@ pub fn parse_obj_file(s: &str) -> Group {
 }
 
 // convert a face into a set of triangles
-fn fan_triangulation(indices: Vec<usize>, vertices: &Vec<Tuple>) -> Vec<Triangle> {
+fn fan_triangulation(indices: Vec<usize>, vertices: &[Tuple]) -> Vec<Triangle> {
     let mut triangles = vec![];
 
     for i in 1..indices.len() - 1 {
