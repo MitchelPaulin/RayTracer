@@ -9,14 +9,12 @@ pub fn parse_obj_file(s: &str) -> Group {
     for line in s.lines() {
         let symbols: Vec<&str> = line
             .split(' ')
-            .filter(|x| !x.contains(char::is_whitespace) && x.len() > 0)
+            .filter(|x| !x.contains(char::is_whitespace) && !x.is_empty())
             .collect();
 
         if symbols.is_empty() {
             continue;
         }
-
-        println!("{:?}", symbols);
 
         match symbols[0] {
             "v" => vertices.push(Tuple::point(

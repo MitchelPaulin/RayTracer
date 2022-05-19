@@ -152,12 +152,12 @@ pub fn prepare_computations<'a>(
     let mut normalv = hit.shape.normal_at(point, world);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
-    let over_point = point + normalv * EPSILON;
 
     if inside {
         normalv *= -1.0;
     }
 
+    let over_point = point + normalv * EPSILON;
     let under_point = point - normalv * EPSILON;
 
     let reflectv = ray.direction.reflect(&normalv);

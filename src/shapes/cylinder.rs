@@ -81,7 +81,7 @@ impl Intersectable for Cylinder {
 
         // ray is parallel to the cylinder, could still intersect a cap however
         if a.abs() < EPSILON {
-            return self.intersect_caps(&ray);
+            return self.intersect_caps(ray);
         }
 
         let b = 2.0 * ray.origin.x * ray.direction.x
@@ -115,7 +115,7 @@ impl Intersectable for Cylinder {
             surface_intersects.push(Intersection { shape: self, t: t1 });
         }
 
-        let mut cap_intersects = self.intersect_caps(&ray);
+        let mut cap_intersects = self.intersect_caps(ray);
         surface_intersects.append(&mut cap_intersects);
         surface_intersects
     }

@@ -31,7 +31,7 @@ fn main() {
 
     let g = parse_obj_file(&obj);
 
-    //scene.1.objects.push(Box::new(g));
+    scene.1.objects.push(Box::new(g));
 
     let start = Instant::now();
     let image = render(scene.0, scene.1, 6);
@@ -173,7 +173,7 @@ fn test_scene() -> (Camera, World) {
         1080,
         PI / 3.0,
         view_transform(
-            Tuple::point(0.0, 3.0, -5.0),
+            Tuple::point(0.0, 3.0, -10.0),
             Tuple::point(0.0, 1.0, 0.0),
             Tuple::vector(0.0, 1.0, 0.0),
         ),

@@ -63,7 +63,7 @@ impl Intersectable for Group {
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         let mut intersects = vec![];
         for s in &self.objects {
-            intersects.append(&mut s.intersect(&ray));
+            intersects.append(&mut s.intersect(ray));
         }
         intersects.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
         intersects

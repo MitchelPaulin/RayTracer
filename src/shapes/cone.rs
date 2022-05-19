@@ -121,7 +121,7 @@ impl Intersectable for Cone {
             }
         }
 
-        let mut cap_intersects = self.intersect_caps(&ray);
+        let mut cap_intersects = self.intersect_caps(ray);
         intersects.append(&mut cap_intersects);
         intersects
     }
