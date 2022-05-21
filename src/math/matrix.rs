@@ -56,15 +56,27 @@ impl ops::Mul<&Tuple> for &Matrix {
     type Output = Tuple;
     fn mul(self, rhs: &Tuple) -> Tuple {
         assert_eq!(self.size, 4);
-        let mut res = [0.0; 4];
-        for (row, r) in res.iter_mut().enumerate().take(self.size) {
-            *r += self.matrix[row][0] * rhs.x
-                + self.matrix[row][1] * rhs.y
-                + self.matrix[row][2] * rhs.z
-                + self.matrix[row][3] * rhs.w;
-        }
 
-        Tuple::new(res[0], res[1], res[2], res[3])
+        // unrolled tuple matrix multiplication to attempt to get maximum speedup
+
+        Tuple {
+            x: self.matrix[0][0] * rhs.x
+                + self.matrix[0][1] * rhs.y
+                + self.matrix[0][2] * rhs.z
+                + self.matrix[0][3] * rhs.w,
+            y: self.matrix[1][0] * rhs.x
+                + self.matrix[1][1] * rhs.y
+                + self.matrix[1][2] * rhs.z
+                + self.matrix[1][3] * rhs.w,
+            z: self.matrix[2][0] * rhs.x
+                + self.matrix[2][1] * rhs.y
+                + self.matrix[2][2] * rhs.z
+                + self.matrix[2][3] * rhs.w,
+            w: self.matrix[3][0] * rhs.x
+                + self.matrix[3][1] * rhs.y
+                + self.matrix[3][2] * rhs.z
+                + self.matrix[3][3] * rhs.w,
+        }
     }
 }
 
