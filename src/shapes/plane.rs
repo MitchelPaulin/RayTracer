@@ -57,7 +57,7 @@ impl Intersectable for Plane {
         vec![Intersection::new(self, -ray.origin.y / ray.direction.y)]
     }
 
-    fn local_normal_at(&self, _: Tuple) -> Tuple {
+    fn local_normal_at(&self, _: Tuple, _: Intersection) -> Tuple {
         Tuple::vector(0.0, 1.0, 0.0)
     }
 
@@ -100,16 +100,17 @@ mod test {
     #[test]
     fn normal_of_place_is_constant() {
         let p = Plane::new(None);
+        let dummy_hit = Intersection::new(&p, 0.0);
         assert_eq!(
-            p.local_normal_at(Tuple::point(0.0, 0.0, 0.0)),
+            p.local_normal_at(Tuple::point(0.0, 0.0, 0.0), dummy_hit),
             Tuple::vector(0.0, 1.0, 0.0)
         );
         assert_eq!(
-            p.local_normal_at(Tuple::point(10.0, 0.0, -10.0)),
+            p.local_normal_at(Tuple::point(10.0, 0.0, -10.0), dummy_hit),
             Tuple::vector(0.0, 1.0, 0.0)
         );
         assert_eq!(
-            p.local_normal_at(Tuple::point(-5.0, 0.0, 150.0)),
+            p.local_normal_at(Tuple::point(-5.0, 0.0, 150.0), dummy_hit),
             Tuple::vector(0.0, 1.0, 0.0)
         );
     }

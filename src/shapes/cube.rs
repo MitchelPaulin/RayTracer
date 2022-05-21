@@ -81,7 +81,7 @@ impl Intersectable for Cube {
         vec![Intersection::new(self, tmin), Intersection::new(self, tmax)]
     }
 
-    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
+    fn local_normal_at(&self, object_point: Tuple, _: Intersection) -> Tuple {
         let maxc = [
             object_point.x.abs(),
             object_point.y.abs(),
@@ -218,8 +218,9 @@ mod test {
             Tuple::vector(-1., 0., 0.),
         ];
 
+        let dummy_hit = Intersection::new(&c, 0.0);
         for i in 0..points.len() {
-            let normal = c.local_normal_at(points[i]);
+            let normal = c.local_normal_at(points[i], dummy_hit);
             assert_eq!(normal, normals[i]);
         }
     }

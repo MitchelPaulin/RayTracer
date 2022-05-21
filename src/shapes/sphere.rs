@@ -54,7 +54,7 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
+    fn local_normal_at(&self, object_point: Tuple, _: Intersection) -> Tuple {
         // find the normal vector in object space (i.e. a unit sphere at the origin)
         object_point - Tuple::point(0.0, 0.0, 0.0)
     }
@@ -183,21 +183,24 @@ mod test {
     #[test]
     fn normal_at_sphere_x_axis() {
         let s = Sphere::new(None);
-        let n = s.local_normal_at(Tuple::point(1.0, 0.0, 0.0));
+        let dummy_hit = Intersection::new(&s, 0.0);
+        let n = s.local_normal_at(Tuple::point(1.0, 0.0, 0.0), dummy_hit);
         assert!(n == Tuple::vector(1.0, 0.0, 0.0));
     }
 
     #[test]
     fn normal_at_sphere_y_axis() {
         let s = Sphere::new(None);
-        let n = s.local_normal_at(Tuple::point(0.0, 1.0, 0.0));
+        let dummy_hit = Intersection::new(&s, 0.0);
+        let n = s.local_normal_at(Tuple::point(0.0, 1.0, 0.0), dummy_hit);
         assert!(n == Tuple::vector(0.0, 1.0, 0.0));
     }
 
     #[test]
     fn normal_at_sphere_z_axis() {
         let s = Sphere::new(None);
-        let n = s.local_normal_at(Tuple::point(0.0, 0.0, 1.0));
+        let dummy_hit = Intersection::new(&s, 0.0);
+        let n = s.local_normal_at(Tuple::point(0.0, 0.0, 1.0), dummy_hit);
         assert!(n == Tuple::vector(0.0, 0.0, 1.0));
     }
 }

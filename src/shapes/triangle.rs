@@ -92,7 +92,7 @@ impl Intersectable for Triangle {
         }
     }
 
-    fn local_normal_at(&self, _: Tuple) -> Tuple {
+    fn local_normal_at(&self, _: Tuple, _: Intersection) -> Tuple {
         self.normal
     }
 
@@ -129,7 +129,7 @@ impl Intersectable for Triangle {
 mod test {
     use crate::{
         math::{ray::Ray, tuples::Tuple},
-        shapes::intersect::Intersectable,
+        shapes::intersect::{Intersectable, Intersection},
     };
 
     use super::Triangle;
@@ -142,11 +142,14 @@ mod test {
             Tuple::point(1.0, 0.0, 0.0),
             None,
         );
-
+        let dummy_hit = Intersection::new(&t, 0.0);
         assert_eq!(t.e1, Tuple::vector(-1.0, -1.0, 0.0));
         assert_eq!(t.e2, Tuple::vector(1.0, -1.0, 0.0));
         assert_eq!(t.normal, Tuple::vector(0.0, 0.0, -1.0));
-        assert_eq!(t.normal, t.local_normal_at(Tuple::vector(0.0, 0.0, 0.0)));
+        assert_eq!(
+            t.normal,
+            t.local_normal_at(Tuple::vector(0.0, 0.0, 0.0), dummy_hit)
+        );
     }
 
     #[test]

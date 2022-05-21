@@ -118,7 +118,7 @@ impl Intersectable for Cylinder {
         surface_intersects
     }
 
-    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
+    fn local_normal_at(&self, object_point: Tuple, _: Intersection) -> Tuple {
         let dist = object_point.x.powi(2) + object_point.z.powi(2);
 
         if dist < 1.0 && object_point.y >= self.maximum - EPSILON {

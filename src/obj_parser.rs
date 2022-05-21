@@ -1,10 +1,15 @@
 use crate::math::tuples::Tuple;
 use crate::shapes::group::Group;
+use crate::shapes::intersect::Intersectable;
+use crate::shapes::smooth_triangle::SmoothTriangle;
 use crate::shapes::triangle::Triangle;
 
 pub fn parse_obj_file(s: &str) -> Group {
     let mut group = Group::new(None);
+
+    // obj files are 1-indexed so add a dummy vector to shift all data over by 1
     let mut vertices: Vec<Tuple> = vec![Tuple::vector(0.0, 0.0, 0.0)];
+    let mut normals: Vec<Tuple> = vec![Tuple::vector(0.0, 0.0, 0.0)];
 
     for line in s.lines() {
         let symbols: Vec<&str> = line
@@ -22,14 +27,33 @@ pub fn parse_obj_file(s: &str) -> Group {
                 symbols[2].parse::<f64>().unwrap(),
                 symbols[3].parse::<f64>().unwrap(),
             )),
+            "vn" => normals.push(Tuple::vector(
+                symbols[1].parse::<f64>().unwrap(),
+                symbols[2].parse::<f64>().unwrap(),
+                symbols[3].parse::<f64>().unwrap(),
+            )),
             "f" => {
                 let mut face_vertices_indices = vec![];
+                let mut face_normal_indices = vec![];
                 for symbol in symbols.iter().skip(1) {
                     let face_info: Vec<&str> = symbol.split('/').collect();
                     face_vertices_indices.push(face_info[0].parse::<usize>().unwrap());
+                    face_normal_indices.push(if face_info.len() >= 2 {
+                        match face_info[2].parse::<usize>() {
+                            Ok(i) => Some(i),
+                            Err(_) => None,
+                        }
+                    } else {
+                        None
+                    })
                 }
-                for t in fan_triangulation(face_vertices_indices, &vertices) {
-                    group.add_object(Box::new(t));
+                for t in fan_triangulation(
+                    face_vertices_indices,
+                    face_normal_indices,
+                    &vertices,
+                    &normals,
+                ) {
+                    group.add_object(t);
                 }
             }
             _ => {
@@ -42,16 +66,32 @@ pub fn parse_obj_file(s: &str) -> Group {
 }
 
 // convert a face into a set of triangles
-fn fan_triangulation(indices: Vec<usize>, vertices: &[Tuple]) -> Vec<Triangle> {
-    let mut triangles = vec![];
+fn fan_triangulation(
+    vector_indices: Vec<usize>,
+    normal_indices: Vec<Option<usize>>,
+    vertices: &[Tuple],
+    normals: &[Tuple],
+) -> Vec<Box<dyn Intersectable>> {
+    let mut triangles: Vec<Box<dyn Intersectable>> = vec![];
 
-    for i in 1..indices.len() - 1 {
-        triangles.push(Triangle::new(
-            vertices[indices[0]],
-            vertices[indices[i]],
-            vertices[indices[i + 1]],
-            None,
-        ));
+    for i in 1..vector_indices.len() - 1 {
+        triangles.push(match normal_indices[i] {
+            Some(_) => Box::new(SmoothTriangle::new(
+                vertices[vector_indices[0]],
+                vertices[vector_indices[i]],
+                vertices[vector_indices[i + 1]],
+                normals[normal_indices[0].unwrap()],
+                normals[normal_indices[i].unwrap()],
+                normals[normal_indices[i + 1].unwrap()],
+                None,
+            )),
+            None => Box::new(Triangle::new(
+                vertices[vector_indices[0]],
+                vertices[vector_indices[i]],
+                vertices[vector_indices[i + 1]],
+                None,
+            )),
+        });
     }
 
     triangles

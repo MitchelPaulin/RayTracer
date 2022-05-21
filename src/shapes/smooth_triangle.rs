@@ -111,8 +111,10 @@ impl Intersectable for SmoothTriangle {
         }
     }
 
-    fn local_normal_at(&self, _: Tuple) -> Tuple {
-        self.normal
+    fn local_normal_at(&self, _: Tuple, hit: Intersection) -> Tuple {
+        self.n2 * hit.u.unwrap()
+            + self.n3 * hit.v.unwrap()
+            + self.n1 * (1.0 - hit.u.unwrap() - hit.v.unwrap())
     }
 
     fn get_material(&self) -> &Material {
@@ -146,7 +148,10 @@ impl Intersectable for SmoothTriangle {
 
 #[cfg(test)]
 mod test {
-    use crate::{math::{tuples::Tuple, ray::Ray, utils::f64_eq}, shapes::intersect::Intersectable};
+    use crate::{
+        math::{ray::Ray, tuples::Tuple, utils::f64_eq},
+        shapes::intersect::{prepare_computations, Intersectable, Intersection},
+    };
 
     use super::SmoothTriangle;
 
@@ -169,5 +174,24 @@ mod test {
         let xs = tri.local_intersect(&ray);
         assert!(f64_eq(xs[0].u.unwrap(), 0.45));
         assert!(f64_eq(xs[0].v.unwrap(), 0.25));
+    }
+
+    #[test]
+    fn interpolated_normal() {
+        let tri = test_triangle();
+        let i = Intersection::new_uv(&tri, 1.0, 0.45, 0.25);
+        let n = tri.normal_at(Tuple::point(0.0, 0.0, 0.0), i, None);
+        assert_eq!(n, Tuple::vector(-0.5547, 0.83205, 0.0));
+    }
+
+    #[test]
+    fn prepare_computations_interpolated_normal() {
+        let tri = test_triangle();
+        let i = Intersection::new_uv(&tri, 1.0, 0.45, 0.25);
+
+        let ray = Ray::new(Tuple::point(-0.2, 0.3, -2.0), Tuple::vector(0.0, 0.0, 1.0));
+        let xs = vec![i];
+        let comps = prepare_computations(&i, &ray, &xs, None);
+        assert_eq!(comps.normalv, Tuple::vector(-0.5547, 0.83205, 0.0));
     }
 }

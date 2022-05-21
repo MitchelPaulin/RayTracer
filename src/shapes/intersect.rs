@@ -25,8 +25,8 @@ pub struct Intersection<'a> {
 impl<'a> Intersection<'a> {
     pub fn new(shape: &'a dyn Intersectable, t: f64) -> Self {
         Intersection {
-            shape: shape,
-            t: t,
+            shape,
+            t,
             u: None,
             v: None,
         }
@@ -44,7 +44,7 @@ impl<'a> Intersection<'a> {
 
 pub trait Intersectable: Sync + Send {
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection>;
-    fn local_normal_at(&self, t: Tuple) -> Tuple;
+    fn local_normal_at(&self, t: Tuple, hit: Intersection) -> Tuple;
     fn get_material(&self) -> &Material;
     fn get_transform(&self) -> &Matrix;
     fn get_inverse_transform(&self) -> &Matrix;
@@ -90,16 +90,16 @@ pub trait Intersectable: Sync + Send {
         }
     }
 
-    fn normal_at(&self, point: Tuple, w: Option<&World>) -> Tuple {
+    fn normal_at(&self, point: Tuple, hit: Intersection, w: Option<&World>) -> Tuple {
         match w {
             Some(w) => {
                 let local_point = self.world_to_object(point, w);
-                let local_normal = self.local_normal_at(local_point);
+                let local_normal = self.local_normal_at(local_point, hit);
                 self.normal_to_world(local_normal, w)
             }
             None => {
                 let local_point = self.get_inverse_transform() * &point;
-                let local_normal = self.local_normal_at(local_point);
+                let local_normal = self.local_normal_at(local_point, hit);
                 let mut transformed = self.get_inverse_transform_transpose() * &local_normal;
                 transformed.w = 0.0;
                 transformed.normalize()
@@ -171,7 +171,7 @@ pub fn prepare_computations<'a>(
     world: Option<&World>,
 ) -> Computations<'a> {
     let point = ray.position(hit.t);
-    let mut normalv = hit.shape.normal_at(point, world);
+    let mut normalv = hit.shape.normal_at(point, *hit, world);
     let eyev = -ray.direction;
     let inside = normalv.dot(&eyev) < 0.0;
 
@@ -251,14 +251,16 @@ mod test {
     #[test]
     fn normal_vector_normalized() {
         let s = Sphere::new(None);
-        let n = s.normal_at(Tuple::point(0.5, 1.0, 0.33), None);
+        let dummy_hit: Intersection = Intersection::new(&s, 0.0);
+        let n = s.normal_at(Tuple::point(0.5, 1.0, 0.33), dummy_hit, None);
         assert!(n == n.normalize());
     }
 
     #[test]
     fn normal_on_translated_sphere() {
         let s = Sphere::new(Some(Matrix::translation(0.0, 1.0, 0.0)));
-        let n = s.normal_at(Tuple::point(0.0, 1.70711, -FRAC_1_SQRT_2), None);
+        let dummy_hit: Intersection = Intersection::new(&s, 0.0);
+        let n = s.normal_at(Tuple::point(0.0, 1.70711, -FRAC_1_SQRT_2), dummy_hit, None);
         assert!(n == Tuple::vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
     }
 
@@ -267,9 +269,10 @@ mod test {
         let s = Sphere::new(Some(
             &Matrix::scaling(1.0, 0.5, 1.0) * &Matrix::rotation_z(PI / 5.0),
         ));
-
+        let dummy_hit: Intersection = Intersection::new(&s, 0.0);
         let n = s.normal_at(
             Tuple::point(0.0, (2.0_f64).sqrt() / 2.0, -(2.0_f64).sqrt() / 2.0),
+            dummy_hit,
             None,
         );
         assert!(n == Tuple::vector(0.0, 0.97014, -0.24254));

@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, fs};
 
 use crate::{
     draw::{
@@ -7,6 +7,7 @@ use crate::{
         patterns::{Checkered, Rings, Solid},
     },
     math::{matrix::Matrix, tuples::Tuple},
+    obj_parser::parse_obj_file,
     scene::{
         camera::{view_transform, Camera},
         light::PointLight,
@@ -14,6 +15,35 @@ use crate::{
     },
     shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
+
+pub fn pawn_chess() -> (Camera, World) {
+    let mut world = World::new();
+
+    let obj =
+        fs::read_to_string("./obj/pawn-chess.obj").expect("Something went wrong reading the file");
+
+    let g = parse_obj_file(&obj);
+
+    world.objects = vec![Box::new(g)];
+
+    world.light_sources = vec![PointLight::new(
+        Color::new(1.0, 1.0, 1.0),
+        Tuple::point(-10.0, 13.0, -10.),
+    )];
+
+    let camera = Camera::new_with_transform(
+        100,
+        100,
+        PI / 3.0,
+        view_transform(
+            Tuple::point(0.0, 3.0, -5.0),
+            Tuple::point(0.0, 1.0, 0.0),
+            Tuple::vector(0.0, 1.0, 0.0),
+        ),
+    );
+
+    (camera, world)
+}
 
 pub fn book_cover() -> (Camera, World) {
     let mut world = World::new();

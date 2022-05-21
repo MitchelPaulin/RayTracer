@@ -146,7 +146,7 @@ impl Tuple {
     pub fn normalize(&self) -> Tuple {
         assert!(self.is_vector());
         let mag = self.magnitude();
-        assert!(!f64_eq(mag, 0.0));
+        assert!(mag > 0.0);
         Tuple::vector(self.x / mag, self.y / mag, self.z / mag)
     }
 

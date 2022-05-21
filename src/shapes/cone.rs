@@ -121,7 +121,7 @@ impl Intersectable for Cone {
         intersects
     }
 
-    fn local_normal_at(&self, object_point: Tuple) -> Tuple {
+    fn local_normal_at(&self, object_point: Tuple, _: Intersection) -> Tuple {
         let dist = object_point.x.powi(2) + object_point.z.powi(2);
 
         if dist < 1.0 && object_point.y >= self.maximum - EPSILON {
@@ -253,9 +253,9 @@ mod test {
         ];
 
         let cone = Cone::new(None);
-
+        let dummy_hit = Intersection::new(&cone, 0.0);
         for i in 0..points.len() {
-            let n = cone.local_normal_at(points[i]);
+            let n = cone.local_normal_at(points[i], dummy_hit);
             assert_eq!(n, normals[i]);
         }
     }

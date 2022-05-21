@@ -85,7 +85,7 @@ impl Intersectable for Group {
         shape
     }
 
-    fn local_normal_at(&self, _: Tuple) -> Tuple {
+    fn local_normal_at(&self, _: Tuple, _: Intersection) -> Tuple {
         panic!("A group does not have a normal, something went wrong")
     }
 
@@ -190,12 +190,19 @@ mod test {
         let mut dummy_world = World::new();
         dummy_world.objects = vec![Box::new(g1)];
 
+        let s = Sphere::new(None);
+        let dummy_hit = Intersection::new(&s, 0.0);
+
         let n = dummy_world.objects[0]
             .get_object_by_id(g2_id)
             .unwrap()
             .get_object_by_id(s_id)
             .unwrap()
-            .normal_at(Tuple::point(1.7321, 1.1547, -5.5774), Some(&dummy_world));
+            .normal_at(
+                Tuple::point(1.7321, 1.1547, -5.5774),
+                dummy_hit,
+                Some(&dummy_world),
+            );
         assert_eq!(
             n,
             Tuple::vector(
