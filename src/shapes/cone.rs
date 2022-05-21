@@ -5,9 +5,7 @@ use crate::{
     math::{matrix::Matrix, ray::Ray, tuples::Tuple, utils::EPSILON},
 };
 
-use super::intersect::{
-   Intersectable, Intersection, OBJECT_COUNTER,
-};
+use super::intersect::{Intersectable, Intersection, OBJECT_COUNTER};
 
 pub struct Cone {
     id: usize,
@@ -63,13 +61,13 @@ impl Cone {
         // check for an intersection at the bottom cap
         let t0 = (self.minimum - ray.origin.y) / ray.direction.y;
         if check_cap(ray, t0, self.minimum) {
-            xs.push(Intersection { shape: self, t: t0 });
+            xs.push(Intersection::new(self, t0));
         }
 
         // check for an intersection at the top cap
         let t1 = (self.maximum - ray.origin.y) / ray.direction.y;
         if check_cap(ray, t1, self.maximum) {
-            xs.push(Intersection { shape: self, t: t1 });
+            xs.push(Intersection::new(self, t1));
         }
 
         xs
@@ -93,10 +91,7 @@ impl Intersectable for Cone {
         let mut intersects = vec![];
 
         if a.abs() <= EPSILON && b.abs() > EPSILON {
-            intersects.push(Intersection {
-                shape: self,
-                t: -c / (2.0 * b),
-            });
+            intersects.push(Intersection::new(self, -c / (2.0 * b)));
         }
 
         if a.abs() > EPSILON {
@@ -111,12 +106,12 @@ impl Intersectable for Cone {
 
                 let y0 = ray.origin.y + t0 * ray.direction.y;
                 if self.minimum < y0 && y0 < self.maximum {
-                    intersects.push(Intersection { shape: self, t: t0 });
+                    intersects.push(Intersection::new(self, t0));
                 }
 
                 let y1 = ray.origin.y + t1 * ray.direction.y;
                 if self.minimum < y1 && y1 < self.maximum {
-                    intersects.push(Intersection { shape: self, t: t1 });
+                    intersects.push(Intersection::new(self, t1));
                 }
             }
         }

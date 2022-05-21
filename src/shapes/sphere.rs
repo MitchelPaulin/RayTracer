@@ -78,14 +78,8 @@ impl Intersectable for Sphere {
         }
 
         vec![
-            Intersection {
-                shape: self,
-                t: (-b - discriminant.sqrt()) / (2.0 * a),
-            },
-            Intersection {
-                shape: self,
-                t: (-b + discriminant.sqrt()) / (2.0 * a),
-            },
+            Intersection::new(self, (-b - discriminant.sqrt()) / (2.0 * a)),
+            Intersection::new(self, (-b + discriminant.sqrt()) / (2.0 * a)),
         ]
     }
 

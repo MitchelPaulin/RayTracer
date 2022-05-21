@@ -61,13 +61,13 @@ impl Cylinder {
         // check for an intersection at the bottom cap
         let t0 = (self.minimum - ray.origin.y) / ray.direction.y;
         if check_cap(ray, t0) {
-            xs.push(Intersection { shape: self, t: t0 });
+            xs.push(Intersection::new(self, t0));
         }
 
         // check for an intersection at the top cap
         let t1 = (self.maximum - ray.origin.y) / ray.direction.y;
         if check_cap(ray, t1) {
-            xs.push(Intersection { shape: self, t: t1 });
+            xs.push(Intersection::new(self, t1));
         }
 
         xs
@@ -76,7 +76,6 @@ impl Cylinder {
 
 impl Intersectable for Cylinder {
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
-
         let a = ray.direction.x.powi(2) + ray.direction.z.powi(2);
 
         // ray is parallel to the cylinder, could still intersect a cap however
@@ -84,8 +83,7 @@ impl Intersectable for Cylinder {
             return self.intersect_caps(ray);
         }
 
-        let b = 2.0 * ray.origin.x * ray.direction.x
-            + 2.0 * ray.origin.z * ray.direction.z;
+        let b = 2.0 * ray.origin.x * ray.direction.x + 2.0 * ray.origin.z * ray.direction.z;
 
         let c = ray.origin.x.powi(2) + ray.origin.z.powi(2) - 1.0;
 
@@ -107,12 +105,12 @@ impl Intersectable for Cylinder {
 
         let y0 = ray.origin.y + t0 * ray.direction.y;
         if self.minimum < y0 && y0 < self.maximum {
-            surface_intersects.push(Intersection { shape: self, t: t0 });
+            surface_intersects.push(Intersection::new(self, t0));
         }
 
         let y1 = ray.origin.y + t1 * ray.direction.y;
         if self.minimum < y1 && y1 < self.maximum {
-            surface_intersects.push(Intersection { shape: self, t: t1 });
+            surface_intersects.push(Intersection::new(self, t1));
         }
 
         let mut cap_intersects = self.intersect_caps(ray);

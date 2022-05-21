@@ -18,6 +18,28 @@ pub static OBJECT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct Intersection<'a> {
     pub shape: &'a dyn Intersectable,
     pub t: f64,
+    pub u: Option<f64>,
+    pub v: Option<f64>,
+}
+
+impl<'a> Intersection<'a> {
+    pub fn new(shape: &'a dyn Intersectable, t: f64) -> Self {
+        Intersection {
+            shape: shape,
+            t: t,
+            u: None,
+            v: None,
+        }
+    }
+
+    pub fn new_uv(shape: &'a dyn Intersectable, t: f64, u: f64, v: f64) -> Self {
+        Intersection {
+            shape,
+            t,
+            u: Some(u),
+            v: Some(v),
+        }
+    }
 }
 
 pub trait Intersectable: Sync + Send {
@@ -146,7 +168,7 @@ pub fn prepare_computations<'a>(
     hit: &'a Intersection,
     ray: &'a Ray,
     intersections: &[Intersection],
-    world: Option<&World>
+    world: Option<&World>,
 ) -> Computations<'a> {
     let point = ray.position(hit.t);
     let mut normalv = hit.shape.normal_at(point, world);
@@ -256,8 +278,8 @@ mod test {
     #[test]
     fn hit_with_positive_t() {
         let s = Sphere::new(None);
-        let i1 = Intersection { shape: &s, t: 1.0 };
-        let i2 = Intersection { shape: &s, t: 2.0 };
+        let i1 = Intersection::new(&s, 1.0);
+        let i2 = Intersection::new(&s, 2.0);
         let v = vec![i1, i2];
         let i = hit(&v).unwrap();
         assert_eq!(i.t, 1.0);
@@ -266,8 +288,8 @@ mod test {
     #[test]
     fn hit_with_negative_t() {
         let s = Sphere::new(None);
-        let i1 = Intersection { shape: &s, t: -1.0 };
-        let i2 = Intersection { shape: &s, t: 1.0 };
+        let i1 = Intersection::new(&s, -1.0);
+        let i2 = Intersection::new(&s, 1.0);
         let v = vec![i1, i2];
         let i = hit(&v).unwrap();
         assert_eq!(i.t, 1.0);
@@ -276,8 +298,8 @@ mod test {
     #[test]
     fn no_hit_with_all_negatives() {
         let s = Sphere::new(None);
-        let i1 = Intersection { shape: &s, t: -1.0 };
-        let i2 = Intersection { shape: &s, t: -2.0 };
+        let i1 = Intersection::new(&s, -1.0);
+        let i2 = Intersection::new(&s, -2.0);
         let v = vec![i1, i2];
         let i = hit(&v);
         assert!(i.is_none());
@@ -286,10 +308,10 @@ mod test {
     #[test]
     fn hit_with_positive_and_negative_t() {
         let s = Sphere::new(None);
-        let i1 = Intersection { shape: &s, t: -1.0 };
-        let i2 = Intersection { shape: &s, t: 5.0 };
-        let i3 = Intersection { shape: &s, t: 7.0 };
-        let i4 = Intersection { shape: &s, t: -2.0 };
+        let i1 = Intersection::new(&s, -1.0);
+        let i2 = Intersection::new(&s, 5.0);
+        let i3 = Intersection::new(&s, 7.0);
+        let i4 = Intersection::new(&s, -2.0);
         let v = vec![i1, i2, i3, i4];
         let i = hit(&v).unwrap();
         assert_eq!(i.t, 5.0);

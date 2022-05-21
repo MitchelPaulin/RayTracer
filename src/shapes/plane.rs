@@ -54,10 +54,7 @@ impl Intersectable for Plane {
             return vec![];
         }
 
-        vec![Intersection {
-            shape: self,
-            t: -ray.origin.y / ray.direction.y,
-        }]
+        vec![Intersection::new(self, -ray.origin.y / ray.direction.y)]
     }
 
     fn local_normal_at(&self, _: Tuple) -> Tuple {

@@ -67,7 +67,6 @@ fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
 
 impl Intersectable for Cube {
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
-
         let x = check_axis(ray.origin.x, ray.direction.x);
         let y = check_axis(ray.origin.y, ray.direction.y);
         let z = check_axis(ray.origin.z, ray.direction.z);
@@ -79,16 +78,7 @@ impl Intersectable for Cube {
             return vec![];
         }
 
-        vec![
-            Intersection {
-                shape: self,
-                t: tmin,
-            },
-            Intersection {
-                shape: self,
-                t: tmax,
-            },
-        ]
+        vec![Intersection::new(self, tmin), Intersection::new(self, tmax)]
     }
 
     fn local_normal_at(&self, object_point: Tuple) -> Tuple {
