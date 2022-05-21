@@ -24,6 +24,15 @@ fn main() {
                 .default_value("6")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("examples")
+                .short("e")
+                .long("example")
+                .value_name("EXAMPLE")
+                .help("The scene to render")
+                .possible_values(&["pawn", "cover", "teapot"])
+                .takes_value(true),
+        )
         .get_matches();
 
     let threads = match matches.value_of("threads").unwrap().parse::<usize>() {
@@ -34,7 +43,12 @@ fn main() {
         }
     };
 
-    let scene = examples::pawn_chess();
+    let scene = match matches.value_of("examples").unwrap_or("cover") {
+        "cover" => examples::book_cover(),
+        "pawn" => examples::pawn_chess(),
+        "teapot" => examples::test_scene(),
+        _ => panic!("Unrecognized scene"),
+    };
 
     let image = render(scene.0, scene.1, threads);
     image.write_to_ppm("canvas.ppm");

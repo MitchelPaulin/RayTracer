@@ -182,8 +182,8 @@ pub fn book_cover() -> (Camera, World) {
     world.objects.push(Box::new(cube));
 
     let camera = Camera::new_with_transform(
-        1500,
-        1500,
+        2000,
+        2000,
         0.785,
         view_transform(
             Tuple::point(-6.0, 6.0, -10.0),
