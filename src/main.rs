@@ -2,6 +2,7 @@
 
 use std::{f64::consts::PI, fs};
 
+use clap::{App, Arg};
 use draw::color::Color;
 use math::{matrix::Matrix, tuples::Tuple};
 use scene::{
@@ -23,9 +24,30 @@ mod obj_parser;
 mod scene;
 mod shapes;
 
-const THREADS: usize = 6;
-
 fn main() {
+    let matches = App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about("An experimental ray tracer")
+        .arg(
+            Arg::with_name("threads")
+                .short("t")
+                .long("threads")
+                .value_name("THREADS")
+                .help("The number of threads used to render the images")
+                .default_value("5")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let threads = match matches.value_of("threads").unwrap().parse::<usize>() {
+        Ok(t) => t,
+        Err(_) => {
+            println!("Invalid number of threads");
+            return;
+        }
+    };
+
     let mut scene = test_scene();
 
     let obj =
@@ -35,7 +57,7 @@ fn main() {
 
     scene.1.objects = vec![Box::new(g)];
 
-    let image = render(scene.0, scene.1, THREADS);
+    let image = render(scene.0, scene.1, threads);
     image.write_to_ppm("canvas.ppm");
 }
 

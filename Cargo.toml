@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 indicatif = "0.16.2" # for rendering progress bars
+clap = "~2.33.3" # parsing command line arguments
