@@ -18,7 +18,7 @@ pub struct Group {
 }
 
 impl Group {
-    pub fn new(transform: Option<Matrix>) -> Self {
+    pub fn new(transform: Option<Matrix>, material: Option<Material>) -> Self {
         let id = OBJECT_COUNTER.fetch_add(1, Ordering::SeqCst);
         let matrices = match transform {
             Some(matrix) => {
@@ -34,12 +34,11 @@ impl Group {
                 Matrix::identity(4),
             ),
         };
-
         Self {
             transform: matrices.0,
             inverse_transform: matrices.1,
             inverse_transform_transpose: matrices.2,
-            material: Material::default_material(),
+            material: material.unwrap_or(Material::default_material()),
             id,
             objects: vec![],
             parent: None,
@@ -48,6 +47,8 @@ impl Group {
 
     pub fn add_object(&mut self, mut shape: Box<dyn Intersectable>) {
         shape.set_parent_id(self.id);
+        // any object added to the group inherits the groups pattern
+        shape.set_material(Material::from_material(&self.material));
         self.objects.push(shape);
     }
 
@@ -116,6 +117,10 @@ impl Intersectable for Group {
     fn set_parent_id(&mut self, id: usize) {
         self.parent = Some(id)
     }
+
+    fn set_material(&mut self, mat: Material) {
+        self.material = mat;
+    }
 }
 
 #[cfg(test)]
@@ -129,7 +134,7 @@ mod test {
 
     #[test]
     fn shape_added_successfully() {
-        let mut g = Group::new(None);
+        let mut g = Group::new(None, None);
         let s = Sphere::new(None);
         let id = s.get_id();
         g.add_object(Box::new(s));
@@ -140,7 +145,7 @@ mod test {
 
     #[test]
     fn intersecting_ray_with_empty_group() {
-        let g = Group::new(None);
+        let g = Group::new(None, None);
         let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0));
         let xs = g.intersect(&r);
         assert!(xs.is_empty());
@@ -148,7 +153,7 @@ mod test {
 
     #[test]
     fn intersecting_ray_with_non_empty_group() {
-        let mut g = Group::new(None);
+        let mut g = Group::new(None, None);
         let s1 = Sphere::new(None);
         let s2 = Sphere::new(Some(Matrix::translation(0.0, 0.0, -3.0)));
         let s3 = Sphere::new(Some(Matrix::translation(5.0, 0.0, 0.0)));
@@ -169,7 +174,7 @@ mod test {
 
     #[test]
     fn intersecting_transformed_groups() {
-        let mut g = Group::new(Some(Matrix::scaling(2.0, 2.0, 2.0)));
+        let mut g = Group::new(Some(Matrix::scaling(2.0, 2.0, 2.0)), None);
         let s = Sphere::new(Some(Matrix::translation(5.0, 0.0, 0.0)));
         g.add_object(Box::new(s));
         let r = Ray::new(Tuple::point(10.0, 0.0, -10.0), Tuple::vector(0.0, 0.0, 1.0));
@@ -179,8 +184,8 @@ mod test {
 
     #[test]
     fn finding_the_normal_on_a_child_object() {
-        let mut g1 = Group::new(Some(Matrix::rotation_y(PI / 2.0)));
-        let mut g2 = Group::new(Some(Matrix::scaling(1.0, 2.0, 3.0)));
+        let mut g1 = Group::new(Some(Matrix::rotation_y(PI / 2.0)), None);
+        let mut g2 = Group::new(Some(Matrix::scaling(1.0, 2.0, 3.0)), None);
         let g2_id = g2.get_id();
         let s = Sphere::new(Some(Matrix::translation(5.0, 0.0, 0.0)));
         let s_id = s.get_id();

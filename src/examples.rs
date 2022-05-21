@@ -22,9 +22,23 @@ pub fn pawn_chess() -> (Camera, World) {
     let obj =
         fs::read_to_string("./obj/pawn-chess.obj").expect("Something went wrong reading the file");
 
-    let g = parse_obj_file(&obj);
+    let mut pawn_mat = Material::default_material();
+    pawn_mat.specular = 1.;
+    pawn_mat.transparency = 1.0;
+    pawn_mat.reflective = 0.9;
+    pawn_mat.shininess = 300.;
+    pawn_mat.ambient = 0.1;
+    pawn_mat.diffuse = 0.1;
+    pawn_mat.refractive_index = 1.52;
 
-    world.objects = vec![Box::new(g)];
+    
+    let g = parse_obj_file(&obj, Some(pawn_mat));
+
+    let mut plane = Plane::new(Some(Matrix::scaling(2.0, 2.0, 2.0)));
+    plane.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));
+    plane.material.reflective = 0.3;
+
+    world.objects = vec![Box::new(g), Box::new(plane)];
 
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
@@ -32,12 +46,12 @@ pub fn pawn_chess() -> (Camera, World) {
     )];
 
     let camera = Camera::new_with_transform(
-        100,
-        100,
+        1000,
+        1000,
         PI / 3.0,
         view_transform(
-            Tuple::point(0.0, 3.0, -5.0),
-            Tuple::point(0.0, 1.0, 0.0),
+            Tuple::point(0.0, 4.0, -5.0),
+            Tuple::point(0.0, 2.0, 0.0),
             Tuple::vector(0.0, 1.0, 0.0),
         ),
     );

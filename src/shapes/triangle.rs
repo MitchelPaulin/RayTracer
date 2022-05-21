@@ -123,6 +123,10 @@ impl Intersectable for Triangle {
     fn set_parent_id(&mut self, id: usize) {
         self.parent = Some(id);
     }
+
+    fn set_material(&mut self, mat: Material) {
+        self.material = mat;
+    }
 }
 
 #[cfg(test)]

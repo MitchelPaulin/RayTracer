@@ -46,6 +46,7 @@ pub trait Intersectable: Sync + Send {
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection>;
     fn local_normal_at(&self, t: Tuple, hit: Intersection) -> Tuple;
     fn get_material(&self) -> &Material;
+    fn set_material(&mut self, mat: Material);
     fn get_transform(&self) -> &Matrix;
     fn get_inverse_transform(&self) -> &Matrix;
     fn get_inverse_transform_transpose(&self) -> &Matrix;
