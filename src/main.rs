@@ -41,14 +41,14 @@ fn main() {
         }
     };
 
-    let mut scene = test_scene();
+    let mut scene = examples::book_cover();
 
     let obj =
         fs::read_to_string("./obj/teapot.obj").expect("Something went wrong reading the file");
 
     let g = parse_obj_file(&obj);
 
-    scene.1.objects = vec![Box::new(g)];
+    //scene.1.objects = vec![Box::new(g)];
 
     let image = render(scene.0, scene.1, threads);
     image.write_to_ppm("canvas.ppm");

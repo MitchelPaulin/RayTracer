@@ -3,6 +3,7 @@ use std::f64::consts::PI;
 use crate::{
     draw::{
         color::Color,
+        material::Material,
         patterns::{Checkered, Rings, Solid},
     },
     math::{matrix::Matrix, tuples::Tuple},
@@ -11,14 +12,146 @@ use crate::{
         light::PointLight,
         world::World,
     },
-    shapes::{
-        cone::Cone, cube::Cube, cylinder::Cylinder, group::Group, plane::Plane, sphere::Sphere,
-    },
+    shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
-pub fn test_scene() -> (Camera, World) {
-    let mut g = Group::new(None);
+pub fn book_cover() -> (Camera, World) {
+    let mut world = World::new();
 
+    world.light_sources = vec![
+        PointLight::new(Color::new(1.0, 1.0, 1.0), Tuple::point(50.0, 100.0, -50.0)),
+        PointLight::new(Color::new(0.2, 0.2, 0.2), Tuple::point(-400.0, 50.0, -10.0)),
+    ];
+
+    let mut white_material = Material::default_material();
+    white_material.pattern = Box::new(Solid::new(Color::white()));
+    white_material.diffuse = 0.7;
+    white_material.ambient = 0.1;
+    white_material.specular = 0.0;
+    white_material.reflective = 0.1;
+
+    let mut blue_material = Material::from_material(&white_material);
+    blue_material.pattern = Box::new(Solid::new(Color::new(0.537, 0.831, 0.914)));
+
+    let mut red_material = Material::from_material(&white_material);
+    red_material.pattern = Box::new(Solid::new(Color::new(0.941, 0.322, 0.388)));
+
+    let mut purple_material = Material::from_material(&white_material);
+    purple_material.pattern = Box::new(Solid::new(Color::new(0.373, 0.404, 0.550)));
+
+    let standard_transform = &Matrix::scaling(0.5, 0.5, 0.5) * &Matrix::translation(1.0, -1.0, 1.0);
+
+    let large_object = &Matrix::scaling(3.5, 3.5, 3.5) * &standard_transform;
+
+    let medium_object = &Matrix::scaling(3.0, 3.0, 3.0) * &standard_transform;
+
+    let small_object = &Matrix::scaling(2.0, 2.0, 2.0) * &standard_transform;
+
+    let mut plane = Plane::new(Some(
+        &Matrix::translation(0.0, 0.0, 500.0) * &Matrix::rotation_x(PI / 2.0),
+    ));
+    plane.material.pattern = Box::new(Solid::new(Color::white()));
+    plane.material.ambient = 1.0;
+    plane.material.diffuse = 0.0;
+    plane.material.specular = 0.0;
+    world.objects.push(Box::new(plane));
+
+    let mut sphere = Sphere::new(Some(&Matrix::identity(4) * &large_object));
+    sphere.material.pattern = Box::new(Solid::new(Color::new(0.373, 0.404, 0.550)));
+    sphere.material.diffuse = 0.2;
+    sphere.material.ambient = 0.0;
+    sphere.material.specular = 1.0;
+    sphere.material.shininess = 200.0;
+    sphere.material.reflective = 0.7;
+    sphere.material.transparency = 0.7;
+    sphere.material.refractive_index = 1.5;
+    world.objects.push(Box::new(sphere));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(4.0, 0.0, 0.0) * &medium_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(8.5, 1.5, -0.5) * &large_object));
+    cube.material = Material::from_material(&blue_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(0.0, 0.0, 4.0) * &large_object));
+    cube.material = Material::from_material(&red_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(4.0, 0.0, 4.0) * &small_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(7.5, 0.5, 4.0) * &medium_object));
+    cube.material = Material::from_material(&purple_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(
+        &Matrix::translation(-0.25, 0.25, 8.0) * &medium_object,
+    ));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(4.0, 1.0, 7.5) * &large_object));
+    cube.material = Material::from_material(&blue_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(10.0, 2.0, 7.5) * &medium_object));
+    cube.material = Material::from_material(&red_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(8.0, 2.0, 12.0) * &small_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(20.0, 1.0, 9.0) * &small_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(-0.5, -5.0, 0.25) * &large_object));
+    cube.material = Material::from_material(&blue_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(4.0, -4.0, 0.0) * &large_object));
+    cube.material = Material::from_material(&red_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(8.5, -4.0, 0.0) * &large_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(0.0, -4.0, 4.0) * &large_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(-0.5, -4.5, 8.0) * &large_object));
+    cube.material = Material::from_material(&purple_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(0.0, -8.0, 4.0) * &large_object));
+    cube.material = Material::from_material(&purple_material);
+    world.objects.push(Box::new(cube));
+
+    let mut cube = Cube::new(Some(&Matrix::translation(-0.5, -8.5, 8.0) * &large_object));
+    cube.material = Material::from_material(&white_material);
+    world.objects.push(Box::new(cube));
+
+    let camera = Camera::new_with_transform(
+        1500,
+        1500,
+        0.785,
+        view_transform(
+            Tuple::point(-6.0, 6.0, -10.0),
+            Tuple::point(6.0, 0.0, 6.0),
+            Tuple::vector(-0.45, 1.0, 0.0),
+        ),
+    );
+
+    (camera, world)
+}
+
+pub fn test_scene() -> (Camera, World) {
     let mut middle = Sphere::new(Some(Matrix::translation(-0.5, 1.0, 0.5)));
     middle.material.pattern = Box::new(Solid::new(Color::black()));
     middle.material.specular = 1.;
@@ -123,17 +256,18 @@ pub fn test_scene() -> (Camera, World) {
     cone.material.ambient = 0.2;
 
     let mut world = World::new();
-    g.add_object(Box::new(left));
-    g.add_object(Box::new(middle));
-    g.add_object(Box::new(right));
-    g.add_object(Box::new(floor));
-    g.add_object(Box::new(middle_behind));
-    g.add_object(Box::new(cylinder_outer));
-    g.add_object(Box::new(cylinder_middle));
-    g.add_object(Box::new(cone));
-    g.add_object(Box::new(ceil));
+    world.objects = vec![
+        Box::new(left),
+        Box::new(middle),
+        Box::new(right),
+        Box::new(floor),
+        Box::new(middle_behind),
+        Box::new(cylinder_outer),
+        Box::new(cylinder_middle),
+        Box::new(cone),
+        Box::new(ceil),
+    ];
 
-    world.objects = vec![Box::new(g)];
     world.light_sources = vec![PointLight::new(
         Color::new(1.0, 1.0, 1.0),
         Tuple::point(-10.0, 13.0, -10.),
@@ -144,7 +278,7 @@ pub fn test_scene() -> (Camera, World) {
         1080,
         PI / 3.0,
         view_transform(
-            Tuple::point(0.0, 3.0, -10.0),
+            Tuple::point(0.0, 3.0, -5.0),
             Tuple::point(0.0, 1.0, 0.0),
             Tuple::vector(0.0, 1.0, 0.0),
         ),

@@ -7,6 +7,7 @@ pub trait Pattern: Sync + Send {
     fn transform(&self) -> &Matrix;
     fn inverse_transform(&self) -> &Matrix;
     fn set_transform(&mut self, transform: Matrix);
+    fn copy_pattern(&self) -> Box<dyn Pattern>;
 }
 
 // --- Solid ----
@@ -41,6 +42,13 @@ impl Pattern for Solid {
     fn inverse_transform(&self) -> &Matrix {
         // transforming a solid pattern does nothing
         &self.transform
+    }
+
+    fn copy_pattern(&self) -> Box<dyn Pattern> {
+        Box::new(Self {
+            c: self.c,
+            transform: self.transform.clone(),
+        })
     }
 }
 // --------
@@ -85,6 +93,15 @@ impl Pattern for Stripe {
 
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
+    }
+
+    fn copy_pattern(&self) -> Box<dyn Pattern> {
+        Box::new(Self {
+            a: self.a,
+            b: self.b,
+            transform: self.transform.clone(),
+            inv_transform: self.inv_transform.clone(),
+        })
     }
 }
 
@@ -143,6 +160,15 @@ impl Pattern for Gradient {
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
     }
+
+    fn copy_pattern(&self) -> Box<dyn Pattern> {
+        Box::new(Self {
+            a: self.a,
+            b: self.b,
+            transform: self.transform.clone(),
+            inv_transform: self.inv_transform.clone(),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -174,7 +200,7 @@ mod gradient_tests {
 // --------
 
 // ---- Rings ----
-
+#[derive(Clone)]
 pub struct Rings {
     a: Color,
     b: Color,
@@ -214,12 +240,21 @@ impl Pattern for Rings {
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
     }
+
+    fn copy_pattern(&self) -> Box<dyn Pattern> {
+        Box::new(Self {
+            a: self.a,
+            b: self.b,
+            transform: self.transform.clone(),
+            inv_transform: self.inv_transform.clone(),
+        })
+    }
 }
 
 // --------
 
 // ---- Checkered ----
-
+#[derive(Clone)]
 pub struct Checkered {
     a: Color,
     b: Color,
@@ -258,6 +293,15 @@ impl Pattern for Checkered {
 
     fn inverse_transform(&self) -> &Matrix {
         &self.inv_transform
+    }
+
+    fn copy_pattern(&self) -> Box<dyn Pattern> {
+        Box::new(Self {
+            a: self.a,
+            b: self.b,
+            transform: self.transform.clone(),
+            inv_transform: self.inv_transform.clone(),
+        })
     }
 }
 

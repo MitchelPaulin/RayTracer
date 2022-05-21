@@ -27,4 +27,17 @@ impl Material {
             refractive_index: 1.0, // vacuum
         }
     }
+
+    pub fn from_material(mat: &Material) -> Self {
+        Self {
+            pattern: mat.pattern.copy_pattern(),
+            ambient: mat.ambient,
+            diffuse: mat.diffuse,
+            specular: mat.specular,
+            shininess: mat.shininess,
+            reflective: mat.reflective,
+            transparency: mat.transparency,
+            refractive_index: mat.refractive_index,
+        }
+    }
 }
