@@ -10,7 +10,7 @@ cargo build --release
 
 ## Example Renders
 
-There are a handful of example renders which are built into the ray tracer. List them using `--help`. Some renders can take a long so it's also recommended to specify as many threads as you can spare with `--threads`. 
+There are a handful of example renders which are built into the ray tracer. List them using `--help`. Some renders can take a long time so it's also recommended to specify as many threads as you can spare with `--threads`. 
 
 ### Glass Pawn [^2]
 
