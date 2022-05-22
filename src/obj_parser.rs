@@ -1,12 +1,13 @@
 use crate::draw::material::Material;
+use crate::math::matrix::Matrix;
 use crate::math::tuples::Tuple;
 use crate::shapes::group::Group;
 use crate::shapes::intersect::Intersectable;
 use crate::shapes::smooth_triangle::SmoothTriangle;
 use crate::shapes::triangle::Triangle;
 
-pub fn parse_obj_file(s: &str, material: Option<Material>) -> Group {
-    let mut group = Group::new(None, material);
+pub fn parse_obj_file(s: &str, transform: Option<Matrix>, material: Option<Material>) -> Group {
+    let mut group = Group::new(transform, material);
 
     // obj files are 1-indexed so add a dummy vector to shift all data over by 1
     let mut vertices: Vec<Tuple> = vec![Tuple::vector(0.0, 0.0, 0.0)];
@@ -112,7 +113,7 @@ mod test {
         f 1 2 3
         f 1 3 4";
 
-        let g = parse_obj_file(data, None);
+        let g = parse_obj_file(data, None, None);
         assert_eq!(g.objects.len(), 2);
     }
 
@@ -126,7 +127,7 @@ mod test {
         v 0 2 0
         f 1 2 3 4 5";
 
-        let g = parse_obj_file(data, None);
+        let g = parse_obj_file(data, None, None);
         assert_eq!(g.objects.len(), 3);
     }
 }

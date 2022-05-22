@@ -98,7 +98,13 @@ pub fn render(camera: Camera, world: World, thread_count: usize) -> Canvas {
     for thread_num in 0..thread_count {
         let cc = c.clone();
         let wc = w.clone();
-        let progress_bar = multi_progress_bar.add(ProgressBar::new(vsize_per_thread as u64));
+        let progress_bar = if thread_num < thread_count - 1 {
+            multi_progress_bar.add(ProgressBar::new(vsize_per_thread as u64))
+        } else {
+            multi_progress_bar.add(ProgressBar::new(
+                (vsize_per_thread + last_thread_offset) as u64,
+            ))
+        };
         progress_bar.set_style(progress_style.clone());
 
         if thread_num == 0 {

@@ -16,6 +16,79 @@ use crate::{
     shapes::{cone::Cone, cube::Cube, cylinder::Cylinder, plane::Plane, sphere::Sphere},
 };
 
+pub fn tea_set() -> (Camera, World) {
+    let mut world = World::new();
+
+    let obj =
+        fs::read_to_string("./obj/teapot.obj").expect("Something went wrong reading the file");
+
+    let mut tea_mat = Material::default_material();
+    tea_mat.pattern = Box::new(Solid::new(Color::new(0.68359375, 0.55859375, 0.91015625)));
+    tea_mat.ambient = 0.35;
+
+    let tea_pot = parse_obj_file(
+        &obj,
+        Some(&Matrix::rotation_x(PI / -2.0) * &Matrix::rotation_z(PI / 6.0)),
+        Some(Material::from_material(&tea_mat)),
+    );
+
+    let obj = fs::read_to_string("./obj/teacup.obj")
+        .expect("Something went wrong reading the file");
+
+    let tea_cup_right = parse_obj_file(
+        &obj,
+        Some(
+            &Matrix::scaling(0.08, 0.08, 0.08)
+                * &(&Matrix::translation(150.0, 4.0, -150.0)
+                    * &(&Matrix::rotation_y(PI / 4.0) * &Matrix::rotation_x(PI / -2.0))),
+        ),
+        Some(Material::from_material(&tea_mat)),
+    );
+
+    let obj = fs::read_to_string("./obj/teacup.obj")
+        .expect("Something went wrong reading the file");
+
+    let tea_cup_left = parse_obj_file(
+        &obj,
+        Some(
+            &Matrix::scaling(0.08, 0.08, 0.08)
+                * &(&Matrix::translation(-175.0, 4.0, -125.0)
+                    * &(&Matrix::rotation_y(PI / 4.0) * &Matrix::rotation_x(PI / -2.0))),
+        ),
+        Some(tea_mat),
+    );
+
+    let mut plane = Plane::new(Some(Matrix::translation(0.0, 1.0, 0.0)));
+    plane.material.pattern = Box::new(Solid::new(Color::black()));
+    plane.material.reflective = 0.6;
+    plane.material.specular = 0.0;
+
+    world.objects = vec![
+        Box::new(tea_cup_left),
+        Box::new(tea_pot),
+        Box::new(tea_cup_right),
+        Box::new(plane),
+    ];
+
+    let camera = Camera::new_with_transform(
+        1750,
+        1000,
+        PI / 3.0,
+        view_transform(
+            Tuple::point(0.0, 20.0, -40.0),
+            Tuple::point(0.0, 2.0, 0.0),
+            Tuple::vector(0.0, 1.0, 0.0),
+        ),
+    );
+
+    world.light_sources = vec![PointLight::new(
+        Color::new(1.0, 1.0, 1.0),
+        Tuple::point(-7.0, 11.0, -10.),
+    )];
+
+    (camera, world)
+}
+
 pub fn pawn_chess() -> (Camera, World) {
     let mut world = World::new();
 
@@ -31,8 +104,7 @@ pub fn pawn_chess() -> (Camera, World) {
     pawn_mat.diffuse = 0.1;
     pawn_mat.refractive_index = 1.52;
 
-    
-    let g = parse_obj_file(&obj, Some(pawn_mat));
+    let g = parse_obj_file(&obj, None, Some(pawn_mat));
 
     let mut plane = Plane::new(Some(Matrix::scaling(2.0, 2.0, 2.0)));
     plane.material.pattern = Box::new(Checkered::new(Color::black(), Color::white()));

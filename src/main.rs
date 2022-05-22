@@ -30,7 +30,7 @@ fn main() {
                 .long("example")
                 .value_name("EXAMPLE")
                 .help("The scene to render")
-                .possible_values(&["pawn", "cover", "teapot"])
+                .possible_values(&["pawn", "cover", "teaset"])
                 .takes_value(true),
         )
         .get_matches();
@@ -46,7 +46,7 @@ fn main() {
     let scene = match matches.value_of("examples").unwrap_or("cover") {
         "cover" => examples::book_cover(),
         "pawn" => examples::pawn_chess(),
-        "teapot" => examples::test_scene(),
+        "teaset" => examples::tea_set(),
         _ => panic!("Unrecognized scene"),
     };
 
